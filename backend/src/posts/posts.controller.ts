@@ -11,6 +11,7 @@ import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RequestUser } from '../auth/types/request-user.type';
 import { CreatePostDto } from './dto/create-post.dto';
+import { FindPostsQueryDto } from './dto/find-posts-query.dto';
 import { PostsService } from './posts.service';
 
 type AuthenticatedRequest = Request & { user: RequestUser };
@@ -20,14 +21,11 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
-    const pageNumber = page !== undefined ? Number(page) : 1;
-    const limitNumber = limit !== undefined ? Number(limit) : 10;
+  findAll(@Query() query: FindPostsQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
 
-    return this.postsService.findAll(pageNumber, limitNumber);
+    return this.postsService.findAll(page, limit);
   }
 
   @Post()
