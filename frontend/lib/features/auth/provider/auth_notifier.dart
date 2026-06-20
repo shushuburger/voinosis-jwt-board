@@ -8,7 +8,17 @@ import 'package:voinosis_jwt_board/shared/storage/secure_storage_service_provide
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
+    Future.microtask(restoreSession);
     return const AuthState.initial();
+  }
+
+  Future<void> restoreSession() async {
+    final secureStorage = ref.read(secureStorageServiceProvider);
+    final token = await secureStorage.getToken();
+
+    state = token != null && token.isNotEmpty
+        ? const AuthState.authenticated()
+        : const AuthState.unauthenticated();
   }
 
   Future<void> login(String email, String password) async {
