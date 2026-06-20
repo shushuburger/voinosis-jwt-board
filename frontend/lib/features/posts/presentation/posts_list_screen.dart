@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/posts_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/post_card.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_create_button.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_empty_view.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_error_view.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_loading_view.dart';
@@ -21,19 +23,7 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(_fetchInitialPosts);
-  }
-
-  Future<void> _fetchInitialPosts() {
-    return ref.read(postsProvider.notifier).fetchInitialPosts();
-  }
-
-  Future<void> _fetchNextPage() {
-    return ref.read(postsProvider.notifier).fetchNextPage();
-  }
-
-  void _onCreatePressed() {
-    // TODO(Issue #9): auth 확인 후 /posts/create 또는 /login 이동 (Step 7)
+    Future.microtask(() => PostsActions.fetchInitialPosts(ref));
   }
 
   @override
@@ -43,8 +33,8 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
     return Scaffold(
       backgroundColor: PostsUiConstants.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF111827),
+        backgroundColor: PostsUiConstants.appBarBackgroundColor,
+        foregroundColor: PostsUiConstants.headingColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         title: const Text(
@@ -54,36 +44,14 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: FilledButton(
-              onPressed: _onCreatePressed,
-              style: FilledButton.styleFrom(
-                backgroundColor: PostsUiConstants.primaryColor,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(72, 36),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                PostsUiText.createButton,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
+        actions: const [
+          PostsCreateButton(onPressed: PostsActions.onCreatePressed),
         ],
       ),
       body: _PostsBody(
         state: postsState,
-        onRetryInitial: _fetchInitialPosts,
-        onRetryPagination: _fetchNextPage,
+        onRetryInitial: () => PostsActions.fetchInitialPosts(ref),
+        onRetryPagination: () => PostsActions.fetchNextPage(ref),
       ),
     );
   }

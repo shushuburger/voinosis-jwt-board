@@ -16,7 +16,7 @@ class PostCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: PostsUiConstants.cardBackgroundColor,
         borderRadius: BorderRadius.circular(PostsUiConstants.cardBorderRadius),
         border: Border.all(color: PostsUiConstants.borderColor),
         boxShadow: [
@@ -37,7 +37,7 @@ class PostCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF111827),
+              color: PostsUiConstants.headingColor,
             ),
           ),
           const SizedBox(height: 8),

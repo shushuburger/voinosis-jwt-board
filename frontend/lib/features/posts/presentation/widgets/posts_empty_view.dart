@@ -8,7 +8,9 @@ class PostsEmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: const EdgeInsets.symmetric(
+          horizontal: PostsUiConstants.stateViewHorizontalPadding,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -24,7 +26,7 @@ class PostsEmptyView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF111827),
+                color: PostsUiConstants.headingColor,
               ),
             ),
             const SizedBox(height: 8),

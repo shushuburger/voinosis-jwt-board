@@ -22,7 +22,7 @@ class PostsPaginationErrorView extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
-              color: Color(0xFFDC2626),
+              color: PostsUiConstants.errorColor,
             ),
           ),
           const SizedBox(height: 8),
