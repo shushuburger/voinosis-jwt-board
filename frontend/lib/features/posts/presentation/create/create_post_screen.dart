@@ -5,6 +5,7 @@ import 'package:voinosis_jwt_board/features/posts/presentation/create/create_pos
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_create_app_bar.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_form_page_layout.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_provider.dart';
+import 'package:voinosis_jwt_board/features/posts/provider/create_post_state.dart';
 
 class CreatePostScreen extends ConsumerStatefulWidget {
   const CreatePostScreen({super.key});
@@ -14,6 +15,7 @@ class CreatePostScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
 
@@ -37,6 +39,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
     await CreatePostActions.submit(
       ref: ref,
+      formKey: _formKey,
       title: _titleController.text,
       content: _contentController.text,
     );
@@ -45,6 +48,18 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     final createPostState = ref.watch(createPostProvider);
+
+    ref.listen<CreatePostState>(createPostProvider, (previous, next) {
+      if (!mounted) {
+        return;
+      }
+
+      CreatePostActions.handleStateChange(
+        context: context,
+        previous: previous,
+        next: next,
+      );
+    });
 
     return PostsFormPageLayout(
       appBar: PostsCreateAppBar(
@@ -56,10 +71,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 ),
       ),
       child: CreatePostForm(
+        formKey: _formKey,
         titleController: _titleController,
         contentController: _contentController,
         isSubmitting: createPostState.isSubmitting,
-        errorMessage: createPostState.errorMessage,
         onSubmit: _handleSubmit,
       ),
     );
