@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_notifier.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
-import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_notifier.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_state.dart';

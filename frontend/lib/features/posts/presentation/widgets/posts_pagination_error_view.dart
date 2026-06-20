@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 
 class PostsPaginationErrorView extends StatelessWidget {
   const PostsPaginationErrorView({

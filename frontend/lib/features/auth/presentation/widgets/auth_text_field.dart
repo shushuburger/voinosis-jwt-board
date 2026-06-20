@@ -14,6 +14,8 @@ class AuthTextField extends StatelessWidget {
     this.validator,
     this.onFieldSubmitted,
     this.onChanged,
+    this.minLines,
+    this.maxLines,
   });
 
   final String label;
@@ -26,6 +28,8 @@ class AuthTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onFieldSubmitted;
   final void Function(String)? onChanged;
+  final int? minLines;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -47,16 +51,18 @@ class AuthTextField extends StatelessWidget {
           textInputAction: textInputAction,
           obscureText: obscureText,
           enabled: enabled,
+          minLines: minLines,
+          maxLines: maxLines,
           validator: validator,
           onFieldSubmitted: onFieldSubmitted,
           onChanged: onChanged,
-          decoration: _inputDecoration(hintText),
+          decoration: inputDecoration(hintText),
         ),
       ],
     );
   }
 
-  static InputDecoration _inputDecoration(String hintText) {
+  static InputDecoration inputDecoration(String hintText) {
     final borderRadius =
         BorderRadius.circular(AuthUiConstants.fieldBorderRadius);
 
