@@ -31,6 +31,10 @@ abstract final class DioErrorUtils {
       return ErrorMessages.network;
     }
 
+    if (error.response?.statusCode == 401) {
+      return ErrorMessages.sessionExpired;
+    }
+
     final serverMessage = extractServerMessage(error.response?.data);
     if (serverMessage != null) {
       return serverMessage;

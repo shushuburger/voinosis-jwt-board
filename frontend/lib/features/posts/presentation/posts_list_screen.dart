@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/post_card.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_create_button.dart';

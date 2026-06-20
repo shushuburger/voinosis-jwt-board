@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:voinosis_jwt_board/features/posts/data/posts_api_paths.dart';
+import 'package:voinosis_jwt_board/features/posts/model/create_post_request.dart';
+import 'package:voinosis_jwt_board/features/posts/model/post_model.dart';
 import 'package:voinosis_jwt_board/features/posts/model/posts_response.dart';
 import 'package:voinosis_jwt_board/shared/network/dio_error_utils.dart';
 
@@ -31,6 +33,19 @@ class PostsRepository {
       );
 
       return PostsResponse.fromJson(response.data!);
+    } on DioException catch (error) {
+      throw PostsFetchException(DioErrorUtils.genericMessage(error));
+    }
+  }
+
+  Future<PostModel> createPost(CreatePostRequest request) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        PostsApiPaths.posts,
+        data: request.toJson(),
+      );
+
+      return PostModel.fromJson(response.data!);
     } on DioException catch (error) {
       throw PostsFetchException(DioErrorUtils.genericMessage(error));
     }

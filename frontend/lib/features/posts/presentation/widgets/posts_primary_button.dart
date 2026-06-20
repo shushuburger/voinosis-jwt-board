@@ -9,6 +9,8 @@ class PostsPrimaryButton extends StatelessWidget {
     this.minimumSize = const Size(120, 40),
     this.padding,
     this.fontSize = 16,
+    this.isLoading = false,
+    this.expand = false,
   });
 
   final String label;
@@ -16,13 +18,17 @@ class PostsPrimaryButton extends StatelessWidget {
   final Size minimumSize;
   final EdgeInsetsGeometry? padding;
   final double fontSize;
+  final bool isLoading;
+  final bool expand;
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: onPressed,
+    final button = FilledButton(
+      onPressed: isLoading ? null : onPressed,
       style: FilledButton.styleFrom(
         backgroundColor: PostsUiConstants.primaryColor,
+        disabledBackgroundColor:
+            PostsUiConstants.primaryColor.withValues(alpha: 0.6),
         foregroundColor: Colors.white,
         minimumSize: minimumSize,
         padding: padding,
@@ -32,13 +38,28 @@ class PostsPrimaryButton extends StatelessWidget {
         ),
         elevation: 0,
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      child: isLoading
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : Text(
+              label,
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
     );
+
+    if (expand) {
+      return SizedBox(width: double.infinity, child: button);
+    }
+
+    return button;
   }
 }
