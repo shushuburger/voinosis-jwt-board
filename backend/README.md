@@ -1,9 +1,7 @@
 # Backend
 
 JWT 인증 게시판 프로젝트의 NestJS 백엔드입니다.  
-현재 **Issue #1**(프로젝트 기반 + Prisma/SQLite), **Issue #2**(JWT 인증 기반 구조), **Issue #3**(회원가입/로그인 API + JWT Access Token 발급)까지 완료된 상태입니다.
-
-> 게시글 CRUD API 및 `JwtAuthGuard`를 적용한 보호 API는 이후 Issue에서 구현 예정입니다.
+현재 **Issue #1**(프로젝트 기반 + Prisma/SQLite), **Issue #2**(JWT 인증 기반 구조), **Issue #3**(회원가입/로그인 API + JWT Access Token 발급), **Issue #4**(게시글 목록 조회 / 작성 API + JWT 보호)까지 완료된 상태입니다.
 
 ---
 
@@ -129,6 +127,113 @@ Postman 사용 시 Body → **raw** → **JSON** 으로 동일한 Body를 전송
 
 ---
 
+## API 엔드포인트 (Issue #4)
+
+| Method | Path | 설명 | 인증 | 성공 상태 코드 |
+|--------|------|------|------|----------------|
+| `GET` | `/posts` | 게시글 목록 조회 (페이지네이션) | 불필요 | `200 OK` |
+| `POST` | `/posts` | 게시글 작성 | **JWT 필수** | `201 Created` |
+
+### `GET /posts`
+
+**Query Parameters**
+
+| 파라미터 | 기본값 | 설명 |
+|----------|--------|------|
+| `page` | `1` | 페이지 번호 (1 이상 정수) |
+| `limit` | `10` | 페이지당 게시글 수 (1 이상 정수) |
+
+**성공 Response (`200`)**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "제목",
+      "content": "본문",
+      "authorId": 7,
+      "createdAt": "2026-06-20T08:55:04.434Z"
+    }
+  ],
+  "meta": {
+    "total": 23,
+    "page": 1,
+    "lastPage": 3
+  }
+}
+```
+
+| HTTP | 조건 |
+|------|------|
+| `200` | 목록 조회 성공 |
+| `400` | query 검증 실패 (`page=abc`, `page=0`, `limit=-1` 등) |
+
+- `createdAt desc` 기준 **최신순** 정렬
+- Prisma `findMany` + `count`를 `Promise.all`로 병렬 조회
+
+### `POST /posts`
+
+**Request Headers**
+
+```http
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body**
+
+```json
+{
+  "title": "게시글 제목",
+  "content": "게시글 본문"
+}
+```
+
+**성공 Response (`201`)**
+
+```json
+{
+  "id": 11,
+  "title": "게시글 제목",
+  "content": "게시글 본문",
+  "authorId": 7,
+  "createdAt": "2026-06-20T10:12:06.176Z"
+}
+```
+
+| HTTP | 조건 |
+|------|------|
+| `201` | 작성 성공 |
+| `401` | JWT 없음 / 유효하지 않음 / 만료 (`JwtAuthGuard`) |
+| `400` | DTO 검증 실패 (`title`, `content` 누락 또는 빈 문자열) |
+
+- `authorId`는 JWT payload의 `sub` → `req.user.userId`에서 추출 (body에 포함하지 않음)
+- `@UseGuards(JwtAuthGuard)` 적용
+
+### curl 예시 (Posts)
+
+```bash
+# 목록 조회 (비로그인 가능)
+curl -i "http://localhost:3000/posts?page=1&limit=10"
+
+# 로그인 후 토큰 발급
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}' \
+  | jq -r '.accessToken')
+
+# 게시글 작성 (JWT 필수)
+curl -i -X POST http://localhost:3000/posts \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"title":"제목","content":"본문"}'
+```
+
+Postman 사용 시 `POST /posts`는 **Authorization → Bearer Token**에 login에서 받은 `accessToken`을 설정합니다.
+
+---
+
 ## 폴더 구조
 
 ```
@@ -141,6 +246,8 @@ backend/
 │   │   ├── strategies/      # JwtStrategy
 │   │   └── types/           # JwtPayload, RequestUser
 │   ├── users/               # 사용자 모듈
+│   ├── posts/               # 게시글 모듈 (Issue #4)
+│   │   └── dto/             # CreatePostDto, FindPostsQueryDto
 │   ├── prisma/              # Prisma NestJS 모듈
 │   ├── app.module.ts        # 루트 모듈
 │   ├── app.controller.ts    # 기본 HTTP 컨트롤러
@@ -160,8 +267,8 @@ backend/
 
 | 파일 | 역할 |
 |------|------|
-| `main.ts` | NestJS 앱 생성, **ValidationPipe 전역 등록**, HTTP 서버 시작 (기본 포트 `3000`) |
-| `app.module.ts` | 루트 모듈. `ConfigModule`(전역), `PrismaModule`, `AuthModule`, `UsersModule` 연결 |
+| `main.ts` | NestJS 앱 생성, **ValidationPipe 전역 등록** (`transform: true`), HTTP 서버 시작 (기본 포트 `3000`) |
+| `app.module.ts` | 루트 모듈. `ConfigModule`(전역), `PrismaModule`, `AuthModule`, `UsersModule`, `PostsModule` 연결 |
 | `app.controller.ts` | `GET /` 요청을 처리하는 기본 컨트롤러 |
 | `app.service.ts` | 컨트롤러가 호출하는 기본 비즈니스 로직 (`Hello World!` 반환) |
 | `app.controller.spec.ts` | `AppController` 단위 테스트 |
@@ -170,13 +277,13 @@ backend/
 
 | 파일 | 역할 |
 |------|------|
-| `auth.module.ts` | `UsersModule`, `PassportModule`, `JwtModule.registerAsync`, `JwtStrategy` 등록 |
+| `auth.module.ts` | `UsersModule`, `PassportModule`, `JwtModule.registerAsync`, `JwtStrategy` 등록. `JwtModule`, `PassportModule` export (PostsModule Guard 연동) |
 | `auth.controller.ts` | `POST /auth/signup`, `POST /auth/login` HTTP 엔드포인트 |
 | `auth.service.ts` | 회원가입(`signup`), 로그인 검증(`validateUser`), JWT 발급(`generateToken`, `login`) |
 | `dto/signup.dto.ts` | 회원가입 요청 DTO (`@IsEmail`, `@MinLength(8)`) |
 | `dto/login.dto.ts` | 로그인 요청 DTO (`@IsEmail`, `@MinLength(8)`) |
 | `strategies/jwt.strategy.ts` | Bearer JWT 검증. `JWT_SECRET`으로 서명 확인 후 `RequestUser` 반환 |
-| `guards/jwt-auth.guard.ts` | `AuthGuard('jwt')`. 보호 API에 `@UseGuards`로 적용 예정 |
+| `guards/jwt-auth.guard.ts` | `AuthGuard('jwt')`. `POST /posts` 등 보호 API에 `@UseGuards`로 적용 |
 | `types/jwt-payload.type.ts` | JWT payload 타입 (`sub`: User ID, `email`) |
 | `types/request-user.type.ts` | 인증 후 `req.user` 타입 (`userId`, `email`) |
 
@@ -186,6 +293,16 @@ backend/
 |------|------|
 | `users.module.ts` | `PrismaModule` import, `UsersService` 등록 및 export |
 | `users.service.ts` | `findByEmail()`, `createUser()` — User DB 접근 (PrismaService 사용) |
+
+### 게시글 (`src/posts/`)
+
+| 파일 | 역할 |
+|------|------|
+| `posts.module.ts` | `PrismaModule`, `AuthModule` import. `PostsController`, `PostsService` 등록 |
+| `posts.controller.ts` | `GET /posts` (목록), `POST /posts` (작성 + JwtAuthGuard) |
+| `posts.service.ts` | `findAll()` — 페이지네이션·최신순 조회. `create()` — Prisma `post.create()` |
+| `dto/create-post.dto.ts` | 작성 요청 DTO (`@IsString`, `@IsNotEmpty`) |
+| `dto/find-posts-query.dto.ts` | 목록 query DTO (`page`, `limit` — `@IsInt`, `@Min(1)`) |
 
 ### Prisma 연동 (`src/prisma/`)
 
@@ -242,11 +359,16 @@ Controller (HTTP)
   → AuthService (인증·해싱·JWT)
     → UsersService (User DB)
       → PrismaService
+
+Controller (HTTP) — Posts
+  → PostsService (게시글 비즈니스 로직)
+    → PrismaService
 ```
 
 - Controller에서 Prisma **직접 접근 금지**
 - bcrypt 해싱·비교, JWT 발급은 **AuthService** 책임
 - User CRUD·조회는 **UsersService** 책임
+- 게시글 조회·작성은 **PostsService** 책임
 
 ### 회원가입 흐름 (`POST /auth/signup`)
 
@@ -271,7 +393,30 @@ Client → AuthController → AuthService.login()
   → { accessToken } (201)
 ```
 
-### JWT 검증 흐름 (Guard 적용 시 — Issue #2 + #3 연동)
+### 게시글 목록 흐름 (`GET /posts`)
+
+```
+Client → PostsController.findAll()
+  → FindPostsQueryDto validation (page, limit)
+  → PostsService.findAll(page, limit)
+      → skip = (page - 1) * limit
+      → Promise.all([ findMany(orderBy desc), count() ])
+  → { data, meta: { total, page, lastPage } } (200)
+```
+
+### 게시글 작성 흐름 (`POST /posts`)
+
+```
+Client (Authorization: Bearer <token>)
+  → JwtAuthGuard → JwtStrategy → req.user
+  → PostsController.create()
+  → CreatePostDto validation
+  → PostsService.create(req.user.userId, dto)
+      → prisma.post.create({ title, content, authorId })
+  → 생성된 Post JSON (201)
+```
+
+### JWT 검증 흐름 (Guard 적용 — Issue #2 + #3 + #4)
 
 ```
 요청 (Authorization: Bearer <accessToken>)
@@ -282,21 +427,26 @@ Client → AuthController → AuthService.login()
   → Controller 실행
 ```
 
-login에서 발급한 토큰과 JwtStrategy가 사용하는 `JWT_SECRET`이 동일하므로, 이후 Posts API 등 보호 엔드포인트에서 Bearer 토큰 검증이 가능합니다.
+login에서 발급한 토큰과 JwtStrategy가 사용하는 `JWT_SECRET`이 동일하므로, `POST /posts` 등 보호 엔드포인트에서 Bearer 토큰 검증이 동작합니다.
 
 ---
 
-## JWT 인증 구조 (Issue #2 + #3)
+## JWT 인증 구조 (Issue #2 + #3 + #4)
 
 ```
 .env (JWT_SECRET, JWT_EXPIRES_IN)
     ↓ ConfigService
-AuthModule
+AuthModule (exports: JwtModule, PassportModule)
   ├── UsersModule             # UsersService (Prisma DB 접근)
   ├── PassportModule          # Passport 프레임워크 활성화
   ├── JwtModule.registerAsync # JwtService (토큰 발급 — login에서 사용)
   ├── JwtStrategy             # Bearer JWT 검증 → RequestUser
-  └── JwtAuthGuard            # AuthGuard('jwt') — POST /posts 등 보호용
+  └── JwtAuthGuard            # AuthGuard('jwt') — POST /posts 보호
+
+PostsModule (imports: AuthModule)
+  └── PostsController
+        ├── GET  /posts        # 공개 (인증 불필요)
+        └── POST /posts        # @UseGuards(JwtAuthGuard)
 ```
 
 ---
@@ -313,7 +463,7 @@ AuthModule
 | **@nestjs/jwt, @nestjs/passport** | NestJS와 JWT·Passport 연동 |
 | **passport, passport-jwt** | Bearer JWT 추출 및 검증 (`JwtStrategy`) |
 | **bcrypt** | 회원가입 시 비밀번호 해싱, 로그인 시 `compare` 검증 |
-| **class-validator, class-transformer** | DTO 입력 검증 (`SignupDto`, `LoginDto`) + `ValidationPipe` |
+| **class-validator, class-transformer** | DTO 입력 검증 (`SignupDto`, `LoginDto`, `CreatePostDto`, `FindPostsQueryDto`) + `ValidationPipe` |
 | **@prisma/client** | `schema.prisma` 모델을 타입 안전하게 조회·생성·수정 |
 | **reflect-metadata** | NestJS 데코레이터 동작에 필요 |
 | **rxjs** | NestJS 내부 비동기 스트림 처리 |
@@ -381,6 +531,12 @@ AuthModule
 
 **해결:** 두 경우 모두 `UnauthorizedException('Invalid credentials')`로 통일하여 **401** 반환.
 
+### 7. query parameter 타입 변환
+
+**고민:** URL query는 항상 string으로 들어와 `page=abc` 같은 입력이 Controller까지 전달되거나, `Number()` 변환 시 `NaN`이 발생할 수 있습니다.
+
+**해결:** `FindPostsQueryDto`에 `@Type(() => Number)`, `@IsInt()`, `@Min(1)` 적용. Global `ValidationPipe({ transform: true })`로 query → number 변환 후 검증. 실패 시 **400**.
+
 ---
 
 ## DB 스키마 요약
@@ -414,7 +570,8 @@ npm run lint               # ESLint
 
 ---
 
-## 이후 Issue 예정 작업
+## 이후 Issue 예정 작업 (낮은 우선순위)
 
-- `POST /posts` 등 보호 API에 `JwtAuthGuard` 적용
-- 게시글 CRUD API 구현
+- 게시글 상세 조회 (`GET /posts/:id`)
+- 게시글 수정 / 삭제 API
+- 작성자 본인만 수정·삭제 가능하도록 권한 검증
