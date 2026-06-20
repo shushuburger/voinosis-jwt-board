@@ -48,6 +48,10 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
     }
   }
 
+  Future<void> _onRefresh() {
+    return PostsActions.refreshPosts(ref: ref, context: context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(postsProvider);
@@ -73,6 +77,7 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
       body: _PostsBody(
         state: postsState,
         scrollController: _scrollController,
+        onRefresh: _onRefresh,
         onRetryInitial: () => PostsActions.fetchInitialPosts(ref),
         onRetryPagination: () => PostsActions.fetchNextPage(ref),
       ),
@@ -84,12 +89,14 @@ class _PostsBody extends StatelessWidget {
   const _PostsBody({
     required this.state,
     required this.scrollController,
+    required this.onRefresh,
     required this.onRetryInitial,
     required this.onRetryPagination,
   });
 
   final PostsState state;
   final ScrollController scrollController;
+  final Future<void> Function() onRefresh;
   final VoidCallback onRetryInitial;
   final VoidCallback onRetryPagination;
 
@@ -100,45 +107,56 @@ class _PostsBody extends StatelessWidget {
     }
 
     if (state.errorMessage != null && state.posts.isEmpty) {
-      return PostsErrorView(
-        message: state.errorMessage!,
-        onRetry: onRetryInitial,
+      return _PostsRefreshWrapper(
+        onRefresh: onRefresh,
+        child: PostsErrorView(
+          message: state.errorMessage!,
+          onRetry: onRetryInitial,
+        ),
       );
     }
 
     if (state.isEmpty) {
-      return const PostsEmptyView();
+      return _PostsRefreshWrapper(
+        onRefresh: onRefresh,
+        child: const PostsEmptyView(),
+      );
     }
 
-    return ListView.separated(
-      controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(
-        PostsUiConstants.pageHorizontalPadding,
-        PostsUiConstants.listVerticalPadding,
-        PostsUiConstants.pageHorizontalPadding,
-        PostsUiConstants.listVerticalPadding,
+    return RefreshIndicator(
+      color: PostsUiConstants.primaryColor,
+      onRefresh: onRefresh,
+      child: ListView.separated(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          PostsUiConstants.pageHorizontalPadding,
+          PostsUiConstants.listVerticalPadding,
+          PostsUiConstants.pageHorizontalPadding,
+          PostsUiConstants.listVerticalPadding,
+        ),
+        itemCount: _itemCount,
+        separatorBuilder: (_, __) =>
+            const SizedBox(height: PostsUiConstants.cardSpacing),
+        itemBuilder: (context, index) {
+          if (index < state.posts.length) {
+            return PostCard(post: state.posts[index]);
+          }
+
+          if (state.isPaginationLoading) {
+            return const PostsPaginationLoadingView();
+          }
+
+          if (state.paginationErrorMessage != null) {
+            return PostsPaginationErrorView(
+              message: state.paginationErrorMessage!,
+              onRetry: onRetryPagination,
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
       ),
-      itemCount: _itemCount,
-      separatorBuilder: (_, __) =>
-          const SizedBox(height: PostsUiConstants.cardSpacing),
-      itemBuilder: (context, index) {
-        if (index < state.posts.length) {
-          return PostCard(post: state.posts[index]);
-        }
-
-        if (state.isPaginationLoading) {
-          return const PostsPaginationLoadingView();
-        }
-
-        if (state.paginationErrorMessage != null) {
-          return PostsPaginationErrorView(
-            message: state.paginationErrorMessage!,
-            onRetry: onRetryPagination,
-          );
-        }
-
-        return const SizedBox.shrink();
-      },
     );
   }
 
@@ -155,5 +173,32 @@ class _PostsBody extends StatelessWidget {
     }
 
     return count;
+  }
+}
+
+class _PostsRefreshWrapper extends StatelessWidget {
+  const _PostsRefreshWrapper({
+    required this.onRefresh,
+    required this.child,
+  });
+
+  final Future<void> Function() onRefresh;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      color: PostsUiConstants.primaryColor,
+      onRefresh: onRefresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: child,
+          ),
+        ],
+      ),
+    );
   }
 }

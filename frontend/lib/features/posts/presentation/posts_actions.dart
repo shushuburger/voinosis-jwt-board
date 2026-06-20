@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_actions.dart';
+import 'package:voinosis_jwt_board/features/posts/data/posts_repository.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_provider.dart';
 
 class PostsActions {
@@ -10,6 +13,19 @@ class PostsActions {
 
   static Future<void> fetchNextPage(WidgetRef ref) {
     return ref.read(postsProvider.notifier).fetchNextPage();
+  }
+
+  static Future<void> refreshPosts({
+    required WidgetRef ref,
+    required BuildContext context,
+  }) async {
+    try {
+      await ref.read(postsProvider.notifier).refreshPosts();
+    } on PostsFetchException catch (error) {
+      if (context.mounted) {
+        AuthFormActions.showErrorSnackBar(context, error.message);
+      }
+    }
   }
 
   static void onCreatePressed() {
