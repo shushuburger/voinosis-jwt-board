@@ -5,6 +5,7 @@ import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_ac
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/create_post_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_state.dart';
+import 'package:voinosis_jwt_board/shared/constants/error_messages.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
 
 class CreatePostActions {
@@ -53,7 +54,17 @@ class CreatePostActions {
       return;
     }
 
+    if (errorMessage == ErrorMessages.sessionExpired) {
+      _handleSessionExpired(context);
+      return;
+    }
+
     AuthFormActions.showErrorSnackBar(context, errorMessage);
+  }
+
+  static void _handleSessionExpired(BuildContext context) {
+    AuthFormActions.showErrorSnackBar(context, ErrorMessages.sessionExpired);
+    context.go(RoutePaths.login);
   }
 
   static void goBack({
