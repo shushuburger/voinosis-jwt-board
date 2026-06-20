@@ -5,4 +5,5 @@ abstract final class CreatePostUiText {
   static const titleHint = '제목을 입력해주세요.';
   static const contentHint = '본문을 입력해주세요.';
   static const saveButton = '저장';
+  static const successMessage = '글이 등록되었습니다.';
 }

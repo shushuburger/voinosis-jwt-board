@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_actions.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/constants/create_post_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_state.dart';
+import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
 
 class CreatePostActions {
   CreatePostActions._();
@@ -18,6 +20,10 @@ class CreatePostActions {
     required String title,
     required String content,
   }) {
+    if (ref.read(createPostProvider).isSubmitting) {
+      return Future.value();
+    }
+
     return AuthFormActions.submitIfValid(
       formKey: formKey,
       action: () => ref.read(createPostProvider.notifier).submitPost(
@@ -32,6 +38,12 @@ class CreatePostActions {
     required CreatePostState? previous,
     required CreatePostState next,
   }) {
+    if (next.isSuccess && previous?.isSuccess != true) {
+      AuthFormActions.showSnackBar(context, CreatePostUiText.successMessage);
+      context.go(RoutePaths.home);
+      return;
+    }
+
     final errorMessage = next.errorMessage;
     if (errorMessage == null || next.isSubmitting) {
       return;

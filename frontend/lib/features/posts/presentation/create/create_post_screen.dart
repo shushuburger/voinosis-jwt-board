@@ -61,21 +61,24 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       );
     });
 
-    return PostsFormPageLayout(
-      appBar: PostsCreateAppBar(
-        onBackPressed: createPostState.isSubmitting
-            ? null
-            : () => CreatePostActions.goBack(
-                  context: context,
-                  isSubmitting: createPostState.isSubmitting,
-                ),
-      ),
-      child: CreatePostForm(
-        formKey: _formKey,
-        titleController: _titleController,
-        contentController: _contentController,
-        isSubmitting: createPostState.isSubmitting,
-        onSubmit: _handleSubmit,
+    return PopScope(
+      canPop: !createPostState.isSubmitting,
+      child: PostsFormPageLayout(
+        appBar: PostsCreateAppBar(
+          onBackPressed: createPostState.isSubmitting
+              ? null
+              : () => CreatePostActions.goBack(
+                    context: context,
+                    isSubmitting: createPostState.isSubmitting,
+                  ),
+        ),
+        child: CreatePostForm(
+          formKey: _formKey,
+          titleController: _titleController,
+          contentController: _contentController,
+          isSubmitting: createPostState.isSubmitting,
+          onSubmit: _handleSubmit,
+        ),
       ),
     );
   }
