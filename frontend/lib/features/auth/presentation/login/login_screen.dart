@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_constants.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/login/login_actions.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/login/login_form.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_form_page_layout.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
@@ -50,30 +50,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       LoginActions.handleAuthStateChange(context: context, next: next);
     });
 
-    return Scaffold(
-      backgroundColor: AuthUiConstants.backgroundColor,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AuthUiConstants.pageHorizontalPadding,
-              vertical: AuthUiConstants.pageVerticalPadding,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: AuthUiConstants.maxFormWidth,
-              ),
-              child: LoginForm(
-                formKey: _formKey,
-                emailController: _emailController,
-                passwordController: _passwordController,
-                isLoading: isLoading,
-                onSubmit: _handleLogin,
-                onSignupPressed: () => context.go(RoutePaths.signup),
-              ),
-            ),
-          ),
-        ),
+    return AuthFormPageLayout(
+      child: LoginForm(
+        formKey: _formKey,
+        emailController: _emailController,
+        passwordController: _passwordController,
+        isLoading: isLoading,
+        onSubmit: _handleLogin,
+        onSignupPressed: () => context.go(RoutePaths.signup),
       ),
     );
   }

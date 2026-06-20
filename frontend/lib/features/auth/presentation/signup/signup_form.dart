@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_constants.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_validators.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_card_title.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_email_password_fields.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_form_card.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_link_prompt.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_page_header.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_primary_button.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_text_field.dart';
 
 class SignupForm extends StatelessWidget {
   const SignupForm({
@@ -41,34 +41,13 @@ class SignupForm extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  AuthUiText.signupCardTitle,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AuthUiConstants.titleColor,
-                  ),
-                ),
+                const AuthCardTitle(title: AuthUiText.signupCardTitle),
                 const SizedBox(height: 24),
-                AuthTextField(
-                  label: AuthUiText.emailLabel,
-                  controller: emailController,
-                  hintText: AuthUiText.emailHint,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  enabled: !isLoading,
-                  validator: AuthValidators.email,
-                ),
-                const SizedBox(height: 20),
-                AuthTextField(
-                  label: AuthUiText.passwordLabel,
-                  controller: passwordController,
-                  hintText: AuthUiText.passwordHint,
-                  obscureText: true,
-                  textInputAction: TextInputAction.done,
-                  enabled: !isLoading,
-                  onFieldSubmitted: (_) => onSubmit(),
-                  validator: AuthValidators.password,
+                AuthEmailPasswordFields(
+                  emailController: emailController,
+                  passwordController: passwordController,
+                  isLoading: isLoading,
+                  onSubmit: onSubmit,
                 ),
                 const SizedBox(height: 28),
                 AuthPrimaryButton(
