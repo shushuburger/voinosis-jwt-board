@@ -1,9 +1,9 @@
 # Backend
 
 JWT 인증 게시판 프로젝트의 NestJS 백엔드입니다.  
-현재 **Issue #1**(프로젝트 기반 + Prisma/SQLite)과 **Issue #2**(JWT 인증 기반 구조)까지 완료된 상태입니다.
+현재 **Issue #1**(프로젝트 기반 + Prisma/SQLite), **Issue #2**(JWT 인증 기반 구조), **Issue #3**(회원가입/로그인 API + JWT Access Token 발급)까지 완료된 상태입니다.
 
-> 회원가입/로그인 API, JWT Access Token **발급**, bcrypt **해싱 로직**, 게시글 API는 이후 Issue에서 구현 예정입니다.
+> 게시글 CRUD API 및 `JwtAuthGuard`를 적용한 보호 API는 이후 Issue에서 구현 예정입니다.
 
 ---
 
@@ -38,6 +38,97 @@ npm run start:dev
 
 ---
 
+## API 엔드포인트 (Issue #3)
+
+| Method | Path | 설명 | 성공 상태 코드 |
+|--------|------|------|----------------|
+| `POST` | `/auth/signup` | 회원가입 | `201 Created` |
+| `POST` | `/auth/login` | 로그인 + JWT Access Token 발급 | `201 Created` |
+
+### `POST /auth/signup`
+
+**Request Body**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**성공 Response (`201`)**
+
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "createdAt": "2026-06-20T08:00:40.224Z"
+}
+```
+
+| HTTP | 조건 |
+|------|------|
+| `201` | 회원가입 성공 |
+| `409` | 이메일 중복 (`ConflictException`) |
+| `400` | DTO 검증 실패 (이메일 형식, 비밀번호 8자 미만) |
+
+- 비밀번호는 **bcrypt**로 해싱 후 DB 저장
+- 응답 Body에 `password` **미포함**
+
+### `POST /auth/login`
+
+**Request Body**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**성공 Response (`201`)**
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+| HTTP | 조건 |
+|------|------|
+| `201` | 로그인 성공 + JWT 발급 |
+| `401` | 사용자 없음 또는 비밀번호 불일치 (`UnauthorizedException`) |
+| `400` | DTO 검증 실패 |
+
+**JWT Payload 예시** (decode 시)
+
+```json
+{
+  "sub": 1,
+  "email": "user@example.com",
+  "iat": 1781942446,
+  "exp": 1782028846
+}
+```
+
+### curl 예시
+
+```bash
+# 회원가입
+curl -i -X POST http://localhost:3000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
+
+# 로그인
+curl -i -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
+```
+
+Postman 사용 시 Body → **raw** → **JSON** 으로 동일한 Body를 전송하면 됩니다.
+
+---
+
 ## 폴더 구조
 
 ```
@@ -54,7 +145,7 @@ backend/
 │   ├── app.module.ts        # 루트 모듈
 │   ├── app.controller.ts    # 기본 HTTP 컨트롤러
 │   ├── app.service.ts       # 기본 서비스
-│   └── main.ts              # 앱 진입점
+│   └── main.ts              # 앱 진입점 (ValidationPipe 전역 등록)
 ├── test/                    # E2E 테스트
 ├── .env                     # 로컬 환경 변수 (git 제외)
 ├── .env.example             # 환경 변수 템플릿
@@ -69,7 +160,7 @@ backend/
 
 | 파일 | 역할 |
 |------|------|
-| `main.ts` | NestJS 앱을 생성하고 HTTP 서버를 시작하는 진입점. 기본 포트는 `3000` |
+| `main.ts` | NestJS 앱 생성, **ValidationPipe 전역 등록**, HTTP 서버 시작 (기본 포트 `3000`) |
 | `app.module.ts` | 루트 모듈. `ConfigModule`(전역), `PrismaModule`, `AuthModule`, `UsersModule` 연결 |
 | `app.controller.ts` | `GET /` 요청을 처리하는 기본 컨트롤러 |
 | `app.service.ts` | 컨트롤러가 호출하는 기본 비즈니스 로직 (`Hello World!` 반환) |
@@ -79,11 +170,11 @@ backend/
 
 | 파일 | 역할 |
 |------|------|
-| `auth.module.ts` | `PassportModule`, `JwtModule.registerAsync`, `JwtStrategy` 등록 |
-| `auth.controller.ts` | `/auth` prefix 컨트롤러 골격 (엔드포인트 미구현) |
-| `auth.service.ts` | 인증 비즈니스 로직 골격 (회원가입/로그인 미구현) |
-| `dto/signup.dto.ts` | 회원가입 요청 DTO (`email`, `password` + class-validator) |
-| `dto/login.dto.ts` | 로그인 요청 DTO (`email`, `password` + class-validator) |
+| `auth.module.ts` | `UsersModule`, `PassportModule`, `JwtModule.registerAsync`, `JwtStrategy` 등록 |
+| `auth.controller.ts` | `POST /auth/signup`, `POST /auth/login` HTTP 엔드포인트 |
+| `auth.service.ts` | 회원가입(`signup`), 로그인 검증(`validateUser`), JWT 발급(`generateToken`, `login`) |
+| `dto/signup.dto.ts` | 회원가입 요청 DTO (`@IsEmail`, `@MinLength(8)`) |
+| `dto/login.dto.ts` | 로그인 요청 DTO (`@IsEmail`, `@MinLength(8)`) |
 | `strategies/jwt.strategy.ts` | Bearer JWT 검증. `JWT_SECRET`으로 서명 확인 후 `RequestUser` 반환 |
 | `guards/jwt-auth.guard.ts` | `AuthGuard('jwt')`. 보호 API에 `@UseGuards`로 적용 예정 |
 | `types/jwt-payload.type.ts` | JWT payload 타입 (`sub`: User ID, `email`) |
@@ -93,8 +184,8 @@ backend/
 
 | 파일 | 역할 |
 |------|------|
-| `users.module.ts` | `UsersService` 등록 |
-| `users.service.ts` | User DB 접근 로직 골격 (미구현) |
+| `users.module.ts` | `PrismaModule` import, `UsersService` 등록 및 export |
+| `users.service.ts` | `findByEmail()`, `createUser()` — User DB 접근 (PrismaService 사용) |
 
 ### Prisma 연동 (`src/prisma/`)
 
@@ -142,27 +233,70 @@ backend/
 
 ---
 
-## JWT 인증 구조 (Issue #2)
+## 아키텍처
+
+### 계층 구조
 
 ```
-.env (JWT_SECRET, JWT_EXPIRES_IN)
-    ↓ ConfigService
-AuthModule
-  ├── PassportModule          # Passport 프레임워크 활성화
-  ├── JwtModule.registerAsync # JwtService (토큰 발급 준비, 로직 미구현)
-  ├── JwtStrategy             # Bearer JWT 검증 → RequestUser
-  └── JwtAuthGuard            # AuthGuard('jwt') — POST /posts 등 보호용
+Controller (HTTP)
+  → AuthService (인증·해싱·JWT)
+    → UsersService (User DB)
+      → PrismaService
 ```
 
-**토큰 검증 흐름 (Guard 적용 시)**
+- Controller에서 Prisma **직접 접근 금지**
+- bcrypt 해싱·비교, JWT 발급은 **AuthService** 책임
+- User CRUD·조회는 **UsersService** 책임
+
+### 회원가입 흐름 (`POST /auth/signup`)
 
 ```
-요청 (Authorization: Bearer <token>)
+Client → AuthController → AuthService.signup()
+  → UsersService.findByEmail()     # 중복 검사 (409)
+  → bcrypt.hash()                  # 비밀번호 해싱
+  → UsersService.createUser()      # DB 저장
+  → password 제외 후 응답 (201)
+```
+
+### 로그인 + JWT 발급 흐름 (`POST /auth/login`)
+
+```
+Client → AuthController → AuthService.login()
+  → AuthService.validateUser()
+      → UsersService.findByEmail()
+      → bcrypt.compare()           # 실패 시 401
+  → AuthService.generateToken()
+      → JwtPayload { sub, email }
+      → JwtService.signAsync()     # JWT_SECRET, JWT_EXPIRES_IN 적용
+  → { accessToken } (201)
+```
+
+### JWT 검증 흐름 (Guard 적용 시 — Issue #2 + #3 연동)
+
+```
+요청 (Authorization: Bearer <accessToken>)
   → JwtAuthGuard
   → JwtStrategy (JWT_SECRET으로 서명 검증)
   → validate(): JwtPayload → RequestUser
   → req.user에 사용자 정보 저장
   → Controller 실행
+```
+
+login에서 발급한 토큰과 JwtStrategy가 사용하는 `JWT_SECRET`이 동일하므로, 이후 Posts API 등 보호 엔드포인트에서 Bearer 토큰 검증이 가능합니다.
+
+---
+
+## JWT 인증 구조 (Issue #2 + #3)
+
+```
+.env (JWT_SECRET, JWT_EXPIRES_IN)
+    ↓ ConfigService
+AuthModule
+  ├── UsersModule             # UsersService (Prisma DB 접근)
+  ├── PassportModule          # Passport 프레임워크 활성화
+  ├── JwtModule.registerAsync # JwtService (토큰 발급 — login에서 사용)
+  ├── JwtStrategy             # Bearer JWT 검증 → RequestUser
+  └── JwtAuthGuard            # AuthGuard('jwt') — POST /posts 등 보호용
 ```
 
 ---
@@ -178,8 +312,8 @@ AuthModule
 | **@nestjs/config** | `.env` 환경 변수를 `ConfigService`로 주입. JWT Secret 하드코딩 방지 |
 | **@nestjs/jwt, @nestjs/passport** | NestJS와 JWT·Passport 연동 |
 | **passport, passport-jwt** | Bearer JWT 추출 및 검증 (`JwtStrategy`) |
-| **bcrypt** | 비밀번호 해싱용 (패키지만 설치, 로직은 이후 Issue) |
-| **class-validator, class-transformer** | DTO 입력 검증 (`SignupDto`, `LoginDto`) |
+| **bcrypt** | 회원가입 시 비밀번호 해싱, 로그인 시 `compare` 검증 |
+| **class-validator, class-transformer** | DTO 입력 검증 (`SignupDto`, `LoginDto`) + `ValidationPipe` |
 | **@prisma/client** | `schema.prisma` 모델을 타입 안전하게 조회·생성·수정 |
 | **reflect-metadata** | NestJS 데코레이터 동작에 필요 |
 | **rxjs** | NestJS 내부 비동기 스트림 처리 |
@@ -235,6 +369,18 @@ AuthModule
 
 **해결:** `configService.getOrThrow<string>('JWT_EXPIRES_IN') as StringValue`로 단언. `.env`에는 `1d` 등 유효한 시간 형식을 사용합니다.
 
+### 5. 응답에서 password 제외
+
+**고민:** Prisma `User` 모델에는 `password` 필드가 포함되어 있어, 그대로 반환하면 해시가 노출됩니다.
+
+**해결:** `const { password: _, ...result } = user` destructuring으로 `password`를 제외한 후 응답. signup·validateUser 모두 동일 패턴 적용.
+
+### 6. 로그인 실패 시 동일한 에러 메시지
+
+**고민:** "사용자 없음"과 "비밀번호 불일치"를 구분하면 email 존재 여부가 노출될 수 있습니다.
+
+**해결:** 두 경우 모두 `UnauthorizedException('Invalid credentials')`로 통일하여 **401** 반환.
+
 ---
 
 ## DB 스키마 요약
@@ -245,7 +391,7 @@ User (1) ──────< Post (N)
 
 | 모델 | 주요 필드 | 제약 |
 |------|-----------|------|
-| **User** | `id`, `email`, `password`, `createdAt` | `email` unique |
+| **User** | `id`, `email`, `password`, `createdAt` | `email` unique, `password`는 bcrypt 해시 저장 |
 | **Post** | `id`, `title`, `content`, `authorId`, `createdAt` | `authorId` → `User.id` FK |
 
 ---
@@ -270,9 +416,5 @@ npm run lint               # ESLint
 
 ## 이후 Issue 예정 작업
 
-- `POST /auth/signup`, `POST /auth/login` API 구현
-- `AuthService`에 bcrypt 해싱 및 JWT Access Token **발급** 로직
-- `UsersService` + `PrismaService` 연동
-- `main.ts`에 `ValidationPipe` 전역 등록
 - `POST /posts` 등 보호 API에 `JwtAuthGuard` 적용
-- 게시글 CRUD API
+- 게시글 CRUD API 구현
