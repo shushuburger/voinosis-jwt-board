@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/login/login_screen.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/signup/signup_screen.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_placeholder_screen.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
 
-GoRouter createAppRouter(AuthState authState) {
-  return GoRouter(
+GoRouter createAppRouter(Ref ref) {
+  final router = GoRouter(
     initialLocation: RoutePaths.home,
-    redirect: (context, state) => _redirect(authState, state.matchedLocation),
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      return _redirect(authState, state.matchedLocation);
+    },
     routes: [
       GoRoute(
         path: RoutePaths.home,
@@ -31,6 +36,14 @@ GoRouter createAppRouter(AuthState authState) {
       ),
     ),
   );
+
+  ref.listen(authProvider, (_, __) {
+    router.refresh();
+  });
+
+  ref.onDispose(router.dispose);
+
+  return router;
 }
 
 String? _redirect(AuthState authState, String location) {

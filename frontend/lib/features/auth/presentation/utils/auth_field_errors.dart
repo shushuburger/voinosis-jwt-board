@@ -6,21 +6,32 @@ enum AuthErrorContext {
   signup,
 }
 
-class AuthErrorMessage {
-  AuthErrorMessage._();
+class AuthFieldErrors {
+  const AuthFieldErrors({
+    this.email,
+    this.password,
+    this.fallbackMessage,
+  });
 
-  static String forLogin(Object error) => _resolve(error, AuthErrorContext.login);
+  final String? email;
+  final String? password;
+  final String? fallbackMessage;
 
-  static String forSignup(Object error) =>
+  bool get hasFieldError => email != null || password != null;
+
+  static AuthFieldErrors forLogin(Object error) =>
+      _resolve(error, AuthErrorContext.login);
+
+  static AuthFieldErrors forSignup(Object error) =>
       _resolve(error, AuthErrorContext.signup);
 
-  static String _resolve(Object error, AuthErrorContext context) {
+  static AuthFieldErrors _resolve(Object error, AuthErrorContext context) {
     if (error is! DioException) {
-      return ErrorMessages.unknown;
+      return const AuthFieldErrors(fallbackMessage: ErrorMessages.unknown);
     }
 
     if (_isNetworkError(error)) {
-      return ErrorMessages.network;
+      return const AuthFieldErrors(password: ErrorMessages.network);
     }
 
     final statusCode = error.response?.statusCode;
@@ -28,18 +39,22 @@ class AuthErrorMessage {
 
     switch (statusCode) {
       case 400:
-        return serverMessage ?? ErrorMessages.validationFailed;
+        return AuthFieldErrors(
+          email: serverMessage ?? ErrorMessages.validationFailed,
+        );
       case 401:
         return context == AuthErrorContext.login
-            ? ErrorMessages.loginFailed
-            : ErrorMessages.signupFailed;
+            ? const AuthFieldErrors(password: ErrorMessages.loginFailed)
+            : const AuthFieldErrors(fallbackMessage: ErrorMessages.signupFailed);
       case 409:
-        return ErrorMessages.emailAlreadyExists;
+        return const AuthFieldErrors(email: ErrorMessages.emailAlreadyExists);
       default:
         return switch (context) {
-          AuthErrorContext.login => ErrorMessages.loginFailed,
-          AuthErrorContext.signup =>
-            serverMessage ?? ErrorMessages.signupFailed,
+          AuthErrorContext.login =>
+            const AuthFieldErrors(password: ErrorMessages.loginFailed),
+          AuthErrorContext.signup => AuthFieldErrors(
+              email: serverMessage ?? ErrorMessages.signupFailed,
+            ),
         };
     }
   }

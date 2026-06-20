@@ -10,12 +10,20 @@ class AuthEmailPasswordFields extends StatelessWidget {
     required this.passwordController,
     required this.isLoading,
     required this.onSubmit,
+    this.emailError,
+    this.passwordError,
+    this.onEmailChanged,
+    this.onPasswordChanged,
   });
 
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final bool isLoading;
   final VoidCallback onSubmit;
+  final String? emailError;
+  final String? passwordError;
+  final ValueChanged<String>? onEmailChanged;
+  final ValueChanged<String>? onPasswordChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +36,8 @@ class AuthEmailPasswordFields extends StatelessWidget {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           enabled: !isLoading,
-          validator: AuthValidators.email,
+          validator: (value) => emailError ?? AuthValidators.email(value),
+          onChanged: onEmailChanged,
         ),
         const SizedBox(height: 20),
         AuthTextField(
@@ -39,7 +48,8 @@ class AuthEmailPasswordFields extends StatelessWidget {
           textInputAction: TextInputAction.done,
           enabled: !isLoading,
           onFieldSubmitted: (_) => onSubmit(),
-          validator: AuthValidators.password,
+          validator: (value) => passwordError ?? AuthValidators.password(value),
+          onChanged: onPasswordChanged,
         ),
       ],
     );

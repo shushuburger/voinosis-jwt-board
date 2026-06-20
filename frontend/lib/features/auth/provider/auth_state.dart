@@ -10,10 +10,14 @@ class AuthState {
   const AuthState({
     this.status = AuthStatus.initial,
     this.errorMessage,
+    this.emailError,
+    this.passwordError,
   });
 
   final AuthStatus status;
   final String? errorMessage;
+  final String? emailError;
+  final String? passwordError;
 
   const AuthState.initial() : this();
 
@@ -23,6 +27,14 @@ class AuthState {
 
   const AuthState.unauthenticated() : this(status: AuthStatus.unauthenticated);
 
-  AuthState.error(String message)
-      : this(status: AuthStatus.error, errorMessage: message);
+  AuthState.error({
+    String? message,
+    String? emailError,
+    String? passwordError,
+  }) : this(
+          status: AuthStatus.error,
+          errorMessage: message ?? emailError ?? passwordError,
+          emailError: emailError,
+          passwordError: passwordError,
+        );
 }

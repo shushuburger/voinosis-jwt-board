@@ -13,6 +13,7 @@ class AuthTextField extends StatelessWidget {
     this.enabled = true,
     this.validator,
     this.onFieldSubmitted,
+    this.onChanged,
   });
 
   final String label;
@@ -24,6 +25,7 @@ class AuthTextField extends StatelessWidget {
   final bool enabled;
   final String? Function(String?)? validator;
   final void Function(String)? onFieldSubmitted;
+  final void Function(String)? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,7 @@ class AuthTextField extends StatelessWidget {
           enabled: enabled,
           validator: validator,
           onFieldSubmitted: onFieldSubmitted,
+          onChanged: onChanged,
           decoration: _inputDecoration(hintText),
         ),
       ],

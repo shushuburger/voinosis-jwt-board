@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:voinosis_jwt_board/features/auth/data/auth_repository_provider.dart';
 import 'package:voinosis_jwt_board/features/auth/model/login_request.dart';
 import 'package:voinosis_jwt_board/features/auth/model/signup_request.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_error_message.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_field_errors.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 import 'package:voinosis_jwt_board/shared/storage/secure_storage_service_provider.dart';
 
@@ -36,7 +36,12 @@ class AuthNotifier extends Notifier<AuthState> {
       await secureStorage.saveToken(response.accessToken);
       state = const AuthState.authenticated();
     } catch (e) {
-      state = AuthState.error(AuthErrorMessage.forLogin(e));
+      final errors = AuthFieldErrors.forLogin(e);
+      state = AuthState.error(
+        message: errors.fallbackMessage,
+        emailError: errors.email,
+        passwordError: errors.password,
+      );
     }
   }
 
@@ -52,7 +57,12 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = const AuthState.unauthenticated();
     } catch (e) {
-      state = AuthState.error(AuthErrorMessage.forSignup(e));
+      final errors = AuthFieldErrors.forSignup(e);
+      state = AuthState.error(
+        message: errors.fallbackMessage,
+        emailError: errors.email,
+        passwordError: errors.password,
+      );
     }
   }
 

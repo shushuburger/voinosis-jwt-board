@@ -32,7 +32,10 @@ class SignupActions {
       return;
     }
 
-    if (next.status == AuthStatus.error && next.errorMessage != null) {
+    if (next.status == AuthStatus.error &&
+        next.emailError == null &&
+        next.passwordError == null &&
+        next.errorMessage != null) {
       AuthFormActions.showErrorSnackBar(context, next.errorMessage!);
     }
   }

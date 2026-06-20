@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 
 class AuthFormActions {
   AuthFormActions._();
@@ -12,6 +13,26 @@ class AuthFormActions {
     }
 
     await action();
+  }
+
+  static void applyFieldErrors({
+    required GlobalKey<FormState> formKey,
+    required AuthState next,
+    required void Function(String? emailError, String? passwordError) onApply,
+  }) {
+    if (next.status != AuthStatus.error) {
+      return;
+    }
+
+    if (next.emailError == null && next.passwordError == null) {
+      return;
+    }
+
+    onApply(next.emailError, next.passwordError);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      formKey.currentState?.validate();
+    });
   }
 
   static void showErrorSnackBar(BuildContext context, String message) {

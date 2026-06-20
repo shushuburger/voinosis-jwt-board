@@ -16,6 +16,10 @@ class LoginForm extends StatelessWidget {
     required this.isLoading,
     required this.onSubmit,
     required this.onSignupPressed,
+    this.emailError,
+    this.passwordError,
+    this.onEmailChanged,
+    this.onPasswordChanged,
   });
 
   final GlobalKey<FormState> formKey;
@@ -24,6 +28,10 @@ class LoginForm extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onSubmit;
   final VoidCallback onSignupPressed;
+  final String? emailError;
+  final String? passwordError;
+  final ValueChanged<String>? onEmailChanged;
+  final ValueChanged<String>? onPasswordChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +56,10 @@ class LoginForm extends StatelessWidget {
                   passwordController: passwordController,
                   isLoading: isLoading,
                   onSubmit: onSubmit,
+                  emailError: emailError,
+                  passwordError: passwordError,
+                  onEmailChanged: onEmailChanged,
+                  onPasswordChanged: onPasswordChanged,
                 ),
                 const SizedBox(height: 28),
                 AuthPrimaryButton(
