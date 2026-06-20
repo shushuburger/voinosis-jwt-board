@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_error_message.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_actions.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
@@ -34,10 +33,7 @@ class SignupActions {
     }
 
     if (next.status == AuthStatus.error && next.errorMessage != null) {
-      AuthFormActions.showErrorSnackBar(
-        context,
-        AuthErrorMessage.forSignup(next.errorMessage!),
-      );
+      AuthFormActions.showErrorSnackBar(context, next.errorMessage!);
     }
   }
 }

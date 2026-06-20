@@ -1,40 +1,70 @@
-import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_message_constants.dart';
+import 'package:dio/dio.dart';
+import 'package:voinosis_jwt_board/shared/constants/error_messages.dart';
+
+enum AuthErrorContext {
+  login,
+  signup,
+}
 
 class AuthErrorMessage {
   AuthErrorMessage._();
 
-  static String forLogin(String message) {
-    if (_isNetworkError(message)) {
-      return AuthErrorMessages.network;
+  static String forLogin(Object error) => _resolve(error, AuthErrorContext.login);
+
+  static String forSignup(Object error) =>
+      _resolve(error, AuthErrorContext.signup);
+
+  static String _resolve(Object error, AuthErrorContext context) {
+    if (error is! DioException) {
+      return ErrorMessages.unknown;
     }
 
-    if (message.contains(AuthErrorPatterns.dioException)) {
-      return AuthErrorMessages.loginFailed;
+    if (_isNetworkError(error)) {
+      return ErrorMessages.network;
     }
 
-    return message;
+    final statusCode = error.response?.statusCode;
+    final serverMessage = _extractServerMessage(error.response?.data);
+
+    switch (statusCode) {
+      case 400:
+        return serverMessage ?? ErrorMessages.validationFailed;
+      case 401:
+        return context == AuthErrorContext.login
+            ? ErrorMessages.loginFailed
+            : ErrorMessages.signupFailed;
+      case 409:
+        return ErrorMessages.emailAlreadyExists;
+      default:
+        return switch (context) {
+          AuthErrorContext.login => ErrorMessages.loginFailed,
+          AuthErrorContext.signup =>
+            serverMessage ?? ErrorMessages.signupFailed,
+        };
+    }
   }
 
-  static String forSignup(String message) {
-    if (_isNetworkError(message)) {
-      return AuthErrorMessages.network;
-    }
-
-    if (message.contains(AuthErrorPatterns.statusCode409) ||
-        message.contains(AuthErrorPatterns.emailAlreadyExists)) {
-      return AuthErrorMessages.emailAlreadyExists;
-    }
-
-    if (message.contains(AuthErrorPatterns.dioException)) {
-      return AuthErrorMessages.signupFailed;
-    }
-
-    return message;
+  static bool _isNetworkError(DioException error) {
+    return error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.sendTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.connectionError;
   }
 
-  static bool _isNetworkError(String message) {
-    return message.contains(AuthErrorPatterns.socketException) ||
-        message.contains(AuthErrorPatterns.connectionRefused) ||
-        message.contains(AuthErrorPatterns.connectionError);
+  static String? _extractServerMessage(dynamic data) {
+    if (data is! Map) {
+      return null;
+    }
+
+    final message = data['message'];
+    if (message is String && message.isNotEmpty) {
+      return message;
+    }
+
+    if (message is List) {
+      return message.whereType<String>().join('\n');
+    }
+
+    return null;
   }
 }
