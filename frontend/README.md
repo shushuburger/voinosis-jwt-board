@@ -1,7 +1,7 @@
 # Frontend
 
 JWT 인증 게시판 프로젝트의 Flutter 프론트엔드입니다.  
-현재 **Issue #6**(Flutter Setup), **Issue #7**(Flutter Authentication Flow), **Issue #8**(Posts List Screen)까지 완료된 상태입니다.
+현재 **Issue #6**(Flutter Setup), **Issue #7**(Flutter Authentication Flow), **Issue #8**(Posts List Screen), **Issue #9**(Create Post Screen & Auth UX)까지 완료된 상태입니다.
 
 - Flutter 프로젝트 생성 및 필수 패키지 설치
 - Riverpod + GoRouter 기본 설정
@@ -9,8 +9,7 @@ JWT 인증 게시판 프로젝트의 Flutter 프론트엔드입니다.
 - JWT 로그인/회원가입, 자동 로그인, 인증 기반 라우팅
 - feature 기반 폴더 구조 (Screen / Form / Actions 분리)
 - 게시글 목록 API 연동, infinite scroll, pull-to-refresh, 공개 접근
-
-> 게시글 작성 UI 및 `POST /posts` API 연동은 **Issue #9**에서 구현 예정입니다.
+- 게시글 작성 UI, `POST /posts` API 연동, validation, 401 session expired UX
 
 ---
 
@@ -75,12 +74,23 @@ flutter test
 1. JWT 없이 앱 실행 → `/` 게시글 목록 화면 (`Posts`)
 2. Create 클릭 → `/login` redirect
 3. 로그인 성공 → `/` 목록 화면, JWT 저장
-4. Create 클릭 (로그인 상태) → `/posts/create` placeholder
+4. Create 클릭 (로그인 상태) → `/posts/create` 작성 화면
 5. 스크롤 하단 → 다음 페이지 infinite scroll
 6. Pull-to-refresh → page 1부터 목록 갱신
 7. 게시글 0개 → Empty UI
 8. 백엔드 OFF 후 앱 시작 → Error UI + 「다시 시도」
 9. 1페이지 로딩 후 백엔드 OFF → 스크롤 하단 → Pagination Error (목록 유지)
+
+### 수동 확인 (게시글 작성)
+
+1. 로그인 후 `/posts/create` 접근 → 제목·본문 입력 폼 표시
+2. 제목/본문 미입력 → 필드 아래 인라인 validation 에러
+3. 정상 작성 → `"글이 등록되었습니다."` SnackBar → `/` 목록 복귀
+4. 작성 후 새 게시글이 목록 최상단에 표시 (목록 Screen `initState` → `fetchInitialPosts()`)
+5. 제출 중 버튼·입력·뒤로가기 비활성 (`PopScope`)
+6. JWT 삭제(또는 만료) 후 저장 → session expired SnackBar + `/login` 이동
+7. 401 후 재로그인 → `/` 목록 이동
+8. 백엔드 OFF 상태 저장 → 네트워크 오류 SnackBar
 
 ### 수동 확인 (인증 플로우)
 
@@ -117,7 +127,7 @@ static const signup = '/auth/signup';
 Posts API 경로는 `lib/features/posts/data/posts_api_paths.dart`에 정의합니다.
 
 ```dart
-static const posts = '/posts';
+static const posts = '/posts';  // GET (목록, 공개) / POST (작성, JWT 필요)
 ```
 
 ---
@@ -157,15 +167,16 @@ frontend/
 │     │     ├─ utils/                    # validators, field errors, form actions
 │     │     └─ widgets/                  # 공통 auth UI 위젯
 │     └─ posts/
-│        ├─ model/                       # PostModel, PostsMeta, PostsResponse
-│        ├─ data/                        # PostsRepository, posts_api_paths
-│        ├─ provider/                    # PostsState, PostsNotifier, postsProvider
+│        ├─ model/                       # PostModel, PostsMeta, PostsResponse, CreatePostRequest
+│        ├─ data/                        # PostsRepository (fetch/create), posts_api_paths
+│        ├─ provider/                    # PostsState, PostsNotifier, CreatePostState, createPostProvider
 │        └─ presentation/
-│           ├─ constants/                # posts_ui_constants.dart
+│           ├─ constants/                # posts_ui_*, create_post_ui_*, validation 메시지
+│           ├─ create/                   # create_post_screen, form, actions
+│           ├─ utils/                    # create_post_validators
 │           ├─ posts_list_screen.dart
-│           ├─ posts_create_placeholder_screen.dart  # Issue #9 placeholder
 │           ├─ posts_actions.dart
-│           └─ widgets/                  # PostCard, 상태별 view, 버튼
+│           └─ widgets/                  # PostCard, 상태별 view, 작성 AppBar/Layout, 버튼
 └─ test/
    └─ widget_test.dart                   # 미인증 시 게시글 목록 화면 표시
 ```
@@ -216,18 +227,22 @@ frontend/
 | `login_actions.dart` / `signup_actions.dart` | submit, 라우팅, SnackBar fallback |
 | `auth_field_errors.dart` | DioException → 이메일/비밀번호 필드 에러 매핑 |
 | `auth_validators.dart` | 클라이언트 폼 검증 (이메일, 비밀번호 8자+) |
-| `auth_form_actions.dart` | `submitIfValid`, `applyFieldErrors`, SnackBar |
+| `auth_form_actions.dart` | `submitIfValid`, `applyFieldErrors`, `showSnackBar` (success/error 공용) |
 
 ### Posts — 데이터·상태
 
 | 파일 | 설명 |
 |------|------|
 | `post_model.dart` | 단일 게시글 (`createdAt` → `DateTime`) |
+| `create_post_request.dart` | 작성 요청 body (`title`, `content`, `toJson()`) |
 | `posts_response.dart` | `{ data, meta }` 응답 래퍼 |
-| `posts_repository.dart` | `GET /posts?page=&limit=` |
+| `posts_repository.dart` | `GET /posts?page=&limit=`, `POST /posts` |
 | `posts_state.dart` | loading, empty, error, pagination, refresh 상태 |
 | `posts_notifier.dart` | `fetchInitialPosts`, `fetchNextPage`, `refreshPosts` |
 | `posts_provider.dart` | `postsProvider` (NotifierProvider) |
+| `create_post_state.dart` | `isSubmitting`, `isSuccess`, `errorMessage` |
+| `create_post_notifier.dart` | `submitPost`, `reset` (중복 제출 방지) |
+| `create_post_provider.dart` | `createPostProvider` (NotifierProvider) |
 
 ### Posts — Presentation
 
@@ -235,10 +250,16 @@ frontend/
 |------|------|
 | `posts_list_screen.dart` | 목록 Screen, ScrollController, RefreshIndicator |
 | `posts_actions.dart` | fetch, refresh, Create auth 분기 (`LoginActions` 패턴) |
+| `create_post_screen.dart` | controller, `ref.listen`, `PopScope` |
+| `create_post_form.dart` | 제목·본문 Form UI (`AuthTextField` multiline) |
+| `create_post_actions.dart` | submit, success navigate, 401 session expired UX |
+| `create_post_validators.dart` | trim 후 제목/본문 빈 값 검증 |
 | `post_card.dart` | 게시글 카드 UI |
 | `posts_*_view.dart` | Loading / Empty / Error / Pagination 상태별 UI |
-| `posts_primary_button.dart` | 공통 primary 버튼 |
+| `posts_primary_button.dart` | 공통 primary 버튼 (`isLoading`, `expand`) |
 | `posts_create_button.dart` | AppBar Create 버튼 |
+| `posts_create_app_bar.dart` | 작성 화면 AppBar |
+| `posts_form_page_layout.dart` | 작성·폼 공통 페이지 레이아웃 |
 
 ### Network · Storage
 
@@ -246,7 +267,7 @@ frontend/
 |------|------|
 | `jwt_auth_interceptor.dart` | 요청 시 Bearer 토큰 첨부, 401 시 logout (login/signup 401 제외) |
 | `dio_client_provider.dart` | 401 → `authProvider.notifier.logout()` 콜백 연결 |
-| `dio_error_utils.dart` | 네트워크/서버 message 공통 파싱 |
+| `dio_error_utils.dart` | 네트워크/401 session expired/서버 message 공통 파싱 |
 | `secure_storage_service.dart` | JWT `saveToken` / `getToken` / `deleteToken` (key: `jwt_token`) |
 
 ### 화면
@@ -254,7 +275,7 @@ frontend/
 | 파일 | 경로 | 설명 |
 |------|------|------|
 | `posts_list_screen.dart` | `/` | 게시글 목록 (Figma 기반) |
-| `posts_create_placeholder_screen.dart` | `/posts/create` | 작성 placeholder (Issue #9) |
+| `create_post_screen.dart` | `/posts/create` | 게시글 작성 (로그인 필요, GoRouter redirect) |
 | `login_screen.dart` | `/login` | 로그인 |
 | `signup_screen.dart` | `/signup` | 회원가입 |
 
@@ -292,13 +313,27 @@ Pull-to-refresh: RefreshIndicator → refreshPosts()
 Create 버튼: authProvider 확인 → /posts/create 또는 /login
 ```
 
+### 게시글 작성 플로우
+
+```text
+CreatePostScreen
+  └─ CreatePostActions (submit, success navigate, 401 UX)
+       └─ createPostProvider (CreatePostNotifier)
+            └─ PostsRepository.createPost() → DioClient → NestJS POST /posts
+
+성공: SnackBar → context.go('/') → PostsListScreen initState → fetchInitialPosts()
+401: JwtAuthInterceptor logout → sessionExpired SnackBar → context.go('/login')
+Validation: Form + CreatePostValidators (인라인) / API·네트워크 (SnackBar)
+```
+
 ### Presentation 레이어 분리
 
 ```text
-Screen   — controller, ref.watch/listen, ScrollController
-Actions  — provider 호출, context.go, SnackBar fallback
+Screen   — controller, ref.watch/listen, ScrollController / PopScope
+Actions  — provider 호출, context.go, SnackBar (success/error/401)
+Form     — UI만 (StatelessWidget, validators 연결)
 Widgets  — 상태별 UI (Loading, Empty, Error, PostCard)
-Notifier — API 호출, PostsState 변경 (BuildContext 없음)
+Notifier — API 호출, State 변경 (BuildContext 없음)
 Repository — Dio 호출, DioException → 도메인 예외 변환
 ```
 
@@ -308,17 +343,21 @@ Repository — Dio 호출, DioException → 도메인 예외 변환
 
 | 구현됨 | 미구현 (이후 이슈) |
 |--------|-------------------|
-| 로그인/회원가입 API 연동 | 게시글 작성 UI (`POST /posts`) |
-| JWT Secure Storage + 자동 로그인 | Issue #9 Create Post Screen |
-| JWT Interceptor + 401 logout | JWT 만료 E2E (posts API 호출 필요) |
-| GoRouter auth redirect | sessionExpired SnackBar |
-| Figma 기반 login/signup UI | 환경별 Base URL (.env) |
-| 클라이언트·서버 에러 인라인 표시 | |
+| 로그인/회원가입 API 연동 | 환경별 Base URL (.env) |
+| JWT Secure Storage + 자동 로그인 | 게시글 상세/수정/삭제 |
+| JWT Interceptor + 401 logout | |
+| GoRouter auth redirect | |
+| Figma 기반 login/signup UI | |
+| 클라이언트·서버 에러 인라인 표시 (auth) | |
 | 게시글 목록 API 연동 (`GET /posts`) | |
 | Infinite scroll + pull-to-refresh | |
 | 게시글 목록 공개 접근 (`/` redirect) | |
 | Create 버튼 auth UX | |
 | Figma 기반 posts list UI | |
+| 게시글 작성 UI + `POST /posts` API 연동 | |
+| 작성 폼 validation (클라이언트 인라인 / API SnackBar) | |
+| 작성 성공 → 목록 복귀 + 목록 갱신 | |
+| 작성 중 401 → sessionExpired SnackBar + `/login` | |
 
 ---
 
@@ -384,6 +423,35 @@ Repository — Dio 호출, DioException → 도메인 예외 변환
 
 ---
 
+### 8. 작성 성공 후 목록 갱신을 어디서 할지
+
+**고민:** 작성 성공 직전 `refreshPosts()`를 호출하면 새 글이 바로 반영되지만, `context.go('/')`로 목록 Screen이 새로 mount되면서 `initState` → `fetchInitialPosts()`도 실행되어 **GET /posts가 중복** 호출될 수 있습니다.
+
+**해결:** 작성 Actions에서는 navigate만 수행하고, 목록 갱신은 `PostsListScreen.initState`의 `fetchInitialPosts()`에 위임합니다. `context.go` 기반 라우팅에서는 작성 화면 진입 시 목록 Screen이 dispose되므로, 복귀 시 1회 fetch가 자연스럽습니다.
+
+---
+
+### 9. 작성 API 401 UX를 UI·Interceptor 중 어디서 처리할지
+
+**고민:** 401 시 토큰 삭제(logout)와 사용자 안내(SnackBar, `/login` 이동)를 Actions·Interceptor·Notifier 여러 곳에 나누면 책임이 겹칩니다.
+
+**해결:**
+
+- **토큰 삭제** — 기존 `JwtAuthInterceptor` + `AuthNotifier.logout()` (변경 없음)
+- **401 메시지** — `DioErrorUtils.genericMessage()`에서 `ErrorMessages.sessionExpired` 매핑
+- **UI 피드백** — `CreatePostActions`에서 session expired SnackBar + `context.go('/login')`
+- **mounted guard** — `CreatePostScreen`의 `ref.listen` 진입부에서 처리 (`LoginScreen`과 동일 패턴)
+
+---
+
+### 10. `AuthTextField` multiline과 `obscureText` 충돌
+
+**고민:** 401 후 `/login` 이동 시 비밀번호 필드에서 `obscureText: true`와 `maxLines: null`(multiline 기본값)이 동시에 적용되면 Flutter assertion이 발생할 수 있습니다.
+
+**해결:** `AuthTextField`에서 `obscureText`일 때 `minLines`/`maxLines`를 1로 고정하고, 일반 필드만 multiline 옵션을 허용합니다.
+
+---
+
 ## 알려진 참고 사항
 
 - **Flutter Web (3.24.0)** — 첫 로드 시 간헐적으로 `MaterialApp`/`Colors` 관련 런타임 오류가 날 수 있음. **페이지 새로고침(F5)** 으로 해결되는 경우가 많음.
@@ -391,4 +459,4 @@ Repository — Dio 호출, DioException → 도메인 예외 변환
 - **Windows desktop** — `flutter run -d windows`는 Visual Studio C++ toolchain 설치가 필요함.
 - **`.env`** — Base URL은 `api_constants.dart`에 하드코딩. 환경 변수 도입 시 `frontend/.gitignore`에 `.env` 추가 예정.
 - **Pull-to-refresh** — 터치/트랙패드 환경 UX. 마우스-only 데스크톱에서는 동작이 제한적일 수 있음.
-- **`/posts/create`** — placeholder 화면. 실제 작성 폼은 이후 교체 예정.
+
