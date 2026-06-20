@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:voinosis_jwt_board/shared/constants/error_messages.dart';
+import 'package:voinosis_jwt_board/shared/network/dio_error_utils.dart';
 
 enum AuthErrorContext {
   login,
@@ -30,12 +31,12 @@ class AuthFieldErrors {
       return const AuthFieldErrors(fallbackMessage: ErrorMessages.unknown);
     }
 
-    if (_isNetworkError(error)) {
+    if (DioErrorUtils.isNetworkError(error)) {
       return const AuthFieldErrors(password: ErrorMessages.network);
     }
 
     final statusCode = error.response?.statusCode;
-    final serverMessage = _extractServerMessage(error.response?.data);
+    final serverMessage = DioErrorUtils.extractServerMessage(error.response?.data);
 
     switch (statusCode) {
       case 400:
@@ -57,29 +58,5 @@ class AuthFieldErrors {
             ),
         };
     }
-  }
-
-  static bool _isNetworkError(DioException error) {
-    return error.type == DioExceptionType.connectionTimeout ||
-        error.type == DioExceptionType.sendTimeout ||
-        error.type == DioExceptionType.receiveTimeout ||
-        error.type == DioExceptionType.connectionError;
-  }
-
-  static String? _extractServerMessage(dynamic data) {
-    if (data is! Map) {
-      return null;
-    }
-
-    final message = data['message'];
-    if (message is String && message.isNotEmpty) {
-      return message;
-    }
-
-    if (message is List) {
-      return message.whereType<String>().join('\n');
-    }
-
-    return null;
   }
 }
