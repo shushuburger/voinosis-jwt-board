@@ -23,6 +23,7 @@ abstract final class PostsUiConstants {
   static const createButtonSize = Size(72, 36);
   static const createButtonPadding = EdgeInsets.symmetric(horizontal: 16);
   static const retryButtonSize = Size(120, 40);
+  static const scrollLoadThreshold = 200.0;
 }
 
 abstract final class PostsUiText {

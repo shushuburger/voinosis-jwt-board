@@ -20,10 +20,32 @@ class PostsListScreen extends ConsumerStatefulWidget {
 }
 
 class _PostsListScreenState extends ConsumerState<PostsListScreen> {
+  late final ScrollController _scrollController;
+
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController()..addListener(_onScroll);
     Future.microtask(() => PostsActions.fetchInitialPosts(ref));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final position = _scrollController.position;
+    const threshold = PostsUiConstants.scrollLoadThreshold;
+
+    if (position.pixels >= position.maxScrollExtent - threshold) {
+      PostsActions.fetchNextPage(ref);
+    }
   }
 
   @override
@@ -50,6 +72,7 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
       ),
       body: _PostsBody(
         state: postsState,
+        scrollController: _scrollController,
         onRetryInitial: () => PostsActions.fetchInitialPosts(ref),
         onRetryPagination: () => PostsActions.fetchNextPage(ref),
       ),
@@ -60,11 +83,13 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
 class _PostsBody extends StatelessWidget {
   const _PostsBody({
     required this.state,
+    required this.scrollController,
     required this.onRetryInitial,
     required this.onRetryPagination,
   });
 
   final PostsState state;
+  final ScrollController scrollController;
   final VoidCallback onRetryInitial;
   final VoidCallback onRetryPagination;
 
@@ -86,6 +111,7 @@ class _PostsBody extends StatelessWidget {
     }
 
     return ListView.separated(
+      controller: scrollController,
       padding: const EdgeInsets.fromLTRB(
         PostsUiConstants.pageHorizontalPadding,
         PostsUiConstants.listVerticalPadding,
