@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Post } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreatePostDto } from './dto/create-post.dto';
 
 type PaginatedPosts = {
   data: Post[];
@@ -35,5 +36,15 @@ export class PostsService {
         lastPage: Math.ceil(total / limit),
       },
     };
+  }
+
+  create(authorId: number, createPostDto: CreatePostDto): Promise<Post> {
+    return this.prisma.post.create({
+      data: {
+        title: createPostDto.title,
+        content: createPostDto.content,
+        authorId,
+      },
+    });
   }
 }
