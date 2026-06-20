@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/login_screen.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/login/login_screen.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/signup_placeholder_screen.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_placeholder_screen.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
