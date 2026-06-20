@@ -70,8 +70,13 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: const [
-          PostsCreateButton(onPressed: PostsActions.onCreatePressed),
+        actions: [
+          PostsCreateButton(
+            onPressed: () => PostsActions.onCreatePressed(
+              ref: ref,
+              context: context,
+            ),
+          ),
         ],
       ),
       body: _PostsBody(
