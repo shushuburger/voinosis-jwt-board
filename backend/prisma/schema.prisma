@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique /// VARCHAR - login ID
+  password  String /// VARCHAR - stored as hash (e.g. bcrypt)
+  createdAt DateTime @default(now()) /// DATETIME - auto-generated
+
+  posts     Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String /// VARCHAR
+  content   String /// TEXT
+
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+}
