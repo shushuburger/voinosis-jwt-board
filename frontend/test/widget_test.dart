@@ -1,14 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_notifier.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 import 'package:voinosis_jwt_board/main.dart';
 
+class _UnauthenticatedAuthNotifier extends AuthNotifier {
+  @override
+  AuthState build() => const AuthState.unauthenticated();
+}
+
 void main() {
-  testWidgets('앱이 게시글 임시 화면을 표시한다', (WidgetTester tester) async {
+  testWidgets('JWT 없으면 로그인 화면을 표시한다', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: App()),
+      ProviderScope(
+        overrides: [
+          authProvider.overrideWith(_UnauthenticatedAuthNotifier.new),
+        ],
+        child: const App(),
+      ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('게시글 목록 (임시 화면)'), findsOneWidget);
+    expect(find.text('JWT 익명 게시판'), findsOneWidget);
+    expect(find.text('로그인'), findsWidgets);
   });
 }

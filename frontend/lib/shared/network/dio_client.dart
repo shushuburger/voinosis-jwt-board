@@ -1,8 +1,23 @@
 import 'package:dio/dio.dart';
 import 'package:voinosis_jwt_board/shared/constants/api_constants.dart';
+import 'package:voinosis_jwt_board/shared/network/jwt_auth_interceptor.dart';
+import 'package:voinosis_jwt_board/shared/storage/secure_storage_service.dart';
 
 class DioClient {
-  DioClient({Dio? dio}) : _dio = dio ?? Dio(_baseOptions);
+  DioClient({
+    Dio? dio,
+    SecureStorageService? secureStorage,
+    OnUnauthorized? onUnauthorized,
+  }) : _dio = dio ?? Dio(_baseOptions) {
+    if (secureStorage != null) {
+      _dio.interceptors.add(
+        JwtAuthInterceptor(
+          secureStorage: secureStorage,
+          onUnauthorized: onUnauthorized,
+        ),
+      );
+    }
+  }
 
   static final BaseOptions _baseOptions = BaseOptions(
     baseUrl: ApiConstants.baseUrl,
