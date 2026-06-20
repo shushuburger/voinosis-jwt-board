@@ -1,15 +1,16 @@
 # Frontend
 
 JWT 인증 게시판 프로젝트의 Flutter 프론트엔드입니다.  
-현재 **Issue #6**(Flutter Setup), **Issue #7**(Flutter Authentication Flow)까지 완료된 상태입니다.
+현재 **Issue #6**(Flutter Setup), **Issue #7**(Flutter Authentication Flow), **Issue #8**(Posts List Screen)까지 완료된 상태입니다.
 
 - Flutter 프로젝트 생성 및 필수 패키지 설치
 - Riverpod + GoRouter 기본 설정
 - DioClient, SecureStorageService, JWT Interceptor 인프라 구성
 - JWT 로그인/회원가입, 자동 로그인, 인증 기반 라우팅
 - feature 기반 폴더 구조 (Screen / Form / Actions 분리)
+- 게시글 목록 API 연동, infinite scroll, pull-to-refresh, 공개 접근
 
-> 게시글 CRUD UI 및 posts API 연동은 **이후 이슈**에서 구현 예정입니다.
+> 게시글 작성 UI 및 `POST /posts` API 연동은 **Issue #9**에서 구현 예정입니다.
 
 ---
 
@@ -69,13 +70,25 @@ flutter analyze
 flutter test
 ```
 
+### 수동 확인 (게시글 목록)
+
+1. JWT 없이 앱 실행 → `/` 게시글 목록 화면 (`Posts`)
+2. Create 클릭 → `/login` redirect
+3. 로그인 성공 → `/` 목록 화면, JWT 저장
+4. Create 클릭 (로그인 상태) → `/posts/create` placeholder
+5. 스크롤 하단 → 다음 페이지 infinite scroll
+6. Pull-to-refresh → page 1부터 목록 갱신
+7. 게시글 0개 → Empty UI
+8. 백엔드 OFF 후 앱 시작 → Error UI + 「다시 시도」
+9. 1페이지 로딩 후 백엔드 OFF → 스크롤 하단 → Pagination Error (목록 유지)
+
 ### 수동 확인 (인증 플로우)
 
-1. JWT 없이 앱 실행 → `/login` redirect
+1. `/login`, `/signup` 직접 접근 가능
 2. 회원가입 성공 → 로그인 화면 이동
-3. 로그인 성공 → 홈(`/`) 이동, JWT 저장
+3. 로그인 성공 → `/` 이동, JWT 저장
 4. 앱 재시작 → 자동 로그인 (홈 유지)
-5. **로그아웃 (임시)** → JWT 삭제, `/login` redirect
+5. `/posts/create` 비로그인 직접 접근 → `/login` redirect
 6. 잘못된 로그인 → 비밀번호 필드 인라인 에러
 7. 중복 이메일 회원가입 → 이메일 필드 인라인 에러
 
@@ -101,6 +114,12 @@ static const login = '/auth/login';
 static const signup = '/auth/signup';
 ```
 
+Posts API 경로는 `lib/features/posts/data/posts_api_paths.dart`에 정의합니다.
+
+```dart
+static const posts = '/posts';
+```
+
 ---
 
 ## 프로젝트 구조
@@ -114,10 +133,11 @@ frontend/
 │  │  │  ├─ api_constants.dart          # Base URL, 타임아웃
 │  │  │  ├─ auth_api_constants.dart     # /auth/login, /auth/signup
 │  │  │  ├─ error_messages.dart         # 앱 공통 API 에러 메시지
-│  │  │  └─ route_constants.dart        # /, /login, /signup
+│  │  │  └─ route_constants.dart        # /, /login, /signup, /posts/create
 │  │  ├─ network/
 │  │  │  ├─ dio_client.dart
 │  │  │  ├─ dio_client_provider.dart
+│  │  │  ├─ dio_error_utils.dart        # DioException 공통 파싱 (auth + posts)
 │  │  │  └─ jwt_auth_interceptor.dart   # JWT 헤더 첨부, 401 logout
 │  │  ├─ storage/
 │  │  │  ├─ secure_storage_service.dart
@@ -137,10 +157,17 @@ frontend/
 │     │     ├─ utils/                    # validators, field errors, form actions
 │     │     └─ widgets/                  # 공통 auth UI 위젯
 │     └─ posts/
+│        ├─ model/                       # PostModel, PostsMeta, PostsResponse
+│        ├─ data/                        # PostsRepository, posts_api_paths
+│        ├─ provider/                    # PostsState, PostsNotifier, postsProvider
 │        └─ presentation/
-│           └─ posts_placeholder_screen.dart  # 홈 임시 화면 (로그아웃 버튼)
+│           ├─ constants/                # posts_ui_constants.dart
+│           ├─ posts_list_screen.dart
+│           ├─ posts_create_placeholder_screen.dart  # Issue #9 placeholder
+│           ├─ posts_actions.dart
+│           └─ widgets/                  # PostCard, 상태별 view, 버튼
 └─ test/
-   └─ widget_test.dart                   # 미인증 시 로그인 화면 표시
+   └─ widget_test.dart                   # 미인증 시 게시글 목록 화면 표시
 ```
 
 ---
@@ -157,7 +184,7 @@ frontend/
 
 | 파일 | 설명 |
 |------|------|
-| `route_constants.dart` | `/`, `/login`, `/signup` 경로 상수 |
+| `route_constants.dart` | `/`, `/login`, `/signup`, `/posts/create` 경로 상수 |
 | `app_router.dart` | `createAppRouter(Ref)` — auth redirect, `router.refresh()` 연동 |
 | `router_provider.dart` | `routerProvider` — GoRouter Riverpod 제공 |
 
@@ -167,7 +194,9 @@ frontend/
 |------------|------|
 | `initial` / `loading` | redirect 없음 |
 | `authenticated` | `/login`, `/signup` → `/` |
-| `unauthenticated` / `error` | 보호 경로 → `/login` (auth 경로는 유지) |
+| `unauthenticated` / `error` | `/`, `/login`, `/signup` 접근 허용 / 그 외(예: `/posts/create`) → `/login` |
+
+> `GET /posts`는 비로그인 가능. `POST /posts` 및 `/posts/create`는 로그인 필요.
 
 ### Auth — 데이터·상태
 
@@ -189,19 +218,43 @@ frontend/
 | `auth_validators.dart` | 클라이언트 폼 검증 (이메일, 비밀번호 8자+) |
 | `auth_form_actions.dart` | `submitIfValid`, `applyFieldErrors`, SnackBar |
 
+### Posts — 데이터·상태
+
+| 파일 | 설명 |
+|------|------|
+| `post_model.dart` | 단일 게시글 (`createdAt` → `DateTime`) |
+| `posts_response.dart` | `{ data, meta }` 응답 래퍼 |
+| `posts_repository.dart` | `GET /posts?page=&limit=` |
+| `posts_state.dart` | loading, empty, error, pagination, refresh 상태 |
+| `posts_notifier.dart` | `fetchInitialPosts`, `fetchNextPage`, `refreshPosts` |
+| `posts_provider.dart` | `postsProvider` (NotifierProvider) |
+
+### Posts — Presentation
+
+| 파일 | 설명 |
+|------|------|
+| `posts_list_screen.dart` | 목록 Screen, ScrollController, RefreshIndicator |
+| `posts_actions.dart` | fetch, refresh, Create auth 분기 (`LoginActions` 패턴) |
+| `post_card.dart` | 게시글 카드 UI |
+| `posts_*_view.dart` | Loading / Empty / Error / Pagination 상태별 UI |
+| `posts_primary_button.dart` | 공통 primary 버튼 |
+| `posts_create_button.dart` | AppBar Create 버튼 |
+
 ### Network · Storage
 
 | 파일 | 설명 |
 |------|------|
 | `jwt_auth_interceptor.dart` | 요청 시 Bearer 토큰 첨부, 401 시 logout (login/signup 401 제외) |
 | `dio_client_provider.dart` | 401 → `authProvider.notifier.logout()` 콜백 연결 |
+| `dio_error_utils.dart` | 네트워크/서버 message 공통 파싱 |
 | `secure_storage_service.dart` | JWT `saveToken` / `getToken` / `deleteToken` (key: `jwt_token`) |
 
 ### 화면
 
 | 파일 | 경로 | 설명 |
 |------|------|------|
-| `posts_placeholder_screen.dart` | `/` | 게시글 목록 임시 화면, AppBar 로그아웃 버튼 |
+| `posts_list_screen.dart` | `/` | 게시글 목록 (Figma 기반) |
+| `posts_create_placeholder_screen.dart` | `/posts/create` | 작성 placeholder (Issue #9) |
 | `login_screen.dart` | `/login` | 로그인 |
 | `signup_screen.dart` | `/signup` | 회원가입 |
 
@@ -226,13 +279,27 @@ DioClient
 main.dart → routerProvider → GoRouter redirect (authProvider 기반)
 ```
 
+### 게시글 목록 플로우
+
+```text
+PostsListScreen
+  └─ PostsActions (fetch, refresh, create navigate)
+       └─ postsProvider (PostsNotifier)
+            └─ PostsRepository → DioClient → NestJS GET /posts
+
+Infinite scroll: ScrollController → fetchNextPage()
+Pull-to-refresh: RefreshIndicator → refreshPosts()
+Create 버튼: authProvider 확인 → /posts/create 또는 /login
+```
+
 ### Presentation 레이어 분리
 
 ```text
-Screen   — controller, ref.listen, field error state
-Form     — UI만 (위젯 조합)
-Actions  — submitIfValid, context.go, SnackBar fallback
-Notifier — API 호출, AuthState 변경 (BuildContext 없음)
+Screen   — controller, ref.watch/listen, ScrollController
+Actions  — provider 호출, context.go, SnackBar fallback
+Widgets  — 상태별 UI (Loading, Empty, Error, PostCard)
+Notifier — API 호출, PostsState 변경 (BuildContext 없음)
+Repository — Dio 호출, DioException → 도메인 예외 변환
 ```
 
 ---
@@ -241,12 +308,17 @@ Notifier — API 호출, AuthState 변경 (BuildContext 없음)
 
 | 구현됨 | 미구현 (이후 이슈) |
 |--------|-------------------|
-| 로그인/회원가입 API 연동 | 게시글 목록/작성 UI |
-| JWT Secure Storage + 자동 로그인 | PostsRepository |
-| JWT Interceptor + 401 logout | posts API 연동 |
-| GoRouter auth redirect | JWT 만료 E2E (posts API 호출 필요) |
-| Figma 기반 login/signup UI | sessionExpired SnackBar |
-| 클라이언트·서버 에러 인라인 표시 | 환경별 Base URL (.env) |
+| 로그인/회원가입 API 연동 | 게시글 작성 UI (`POST /posts`) |
+| JWT Secure Storage + 자동 로그인 | Issue #9 Create Post Screen |
+| JWT Interceptor + 401 logout | JWT 만료 E2E (posts API 호출 필요) |
+| GoRouter auth redirect | sessionExpired SnackBar |
+| Figma 기반 login/signup UI | 환경별 Base URL (.env) |
+| 클라이언트·서버 에러 인라인 표시 | |
+| 게시글 목록 API 연동 (`GET /posts`) | |
+| Infinite scroll + pull-to-refresh | |
+| 게시글 목록 공개 접근 (`/` redirect) | |
+| Create 버튼 auth UX | |
+| Figma 기반 posts list UI | |
 
 ---
 
@@ -304,6 +376,13 @@ Notifier — API 호출, AuthState 변경 (BuildContext 없음)
 
 ---
 
+### 7. 최초 Error vs Pagination Error를 어떻게 나눌지
+
+**고민:** 목록 API 실패 시 항상 전체 화면을 Error로 바꾸면, 2페이지만 실패했을 때 이미 본 목록이 사라져 UX가 나빠집니다.
+
+**해결:** `PostsState`에서 `errorMessage`(최초 실패)와 `paginationErrorMessage`(다음 페이지 실패)를 분리합니다. pagination 실패 시 기존 `posts`는 유지하고 하단에 retry UI만 표시합니다.
+
+---
 
 ## 알려진 참고 사항
 
@@ -311,4 +390,5 @@ Notifier — API 호출, AuthState 변경 (BuildContext 없음)
 - **Flutter Web JWT** — DevTools → Application → Local Storage에서 `jwt_token` 확인 가능 (Web은 flutter_secure_storage web 구현 사용).
 - **Windows desktop** — `flutter run -d windows`는 Visual Studio C++ toolchain 설치가 필요함.
 - **`.env`** — Base URL은 `api_constants.dart`에 하드코딩. 환경 변수 도입 시 `frontend/.gitignore`에 `.env` 추가 예정.
-- **홈 화면** — `posts_placeholder_screen.dart`는 임시 화면입니다. posts 기능 이슈에서 실제 목록 UI로 교체 예정.
+- **Pull-to-refresh** — 터치/트랙패드 환경 UX. 마우스-only 데스크톱에서는 동작이 제한적일 수 있음.
+- **`/posts/create`** — placeholder 화면. 실제 작성 폼은 이후 교체 예정.
