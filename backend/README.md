@@ -1,9 +1,9 @@
 # Backend
 
 JWT 인증 게시판 프로젝트의 NestJS 백엔드입니다.  
-현재 Issue #1 범위로 **프로젝트 기반 설정**과 **Prisma + SQLite DB 구성**까지 완료된 상태입니다.
+현재 **Issue #1**(프로젝트 기반 + Prisma/SQLite)과 **Issue #2**(JWT 인증 기반 구조)까지 완료된 상태입니다.
 
-> 회원가입, 로그인, JWT, 게시글 API는 이후 Issue에서 구현 예정입니다.
+> 회원가입/로그인 API, JWT Access Token **발급**, bcrypt **해싱 로직**, 게시글 API는 이후 Issue에서 구현 예정입니다.
 
 ---
 
@@ -15,7 +15,7 @@ npm install
 
 # 환경 변수 설정
 cp .env.example .env
-# .env에서 <your-db-name>을 실제 DB 파일명으로 변경
+# .env에서 DATABASE_URL, JWT_SECRET 등을 로컬 값으로 설정
 
 # DB migration 적용 (최초 1회)
 npx prisma migrate dev
@@ -26,6 +26,16 @@ npm run start:dev
 
 서버 기동 후 `http://localhost:3000` 에 접속하면 `Hello World!` 응답을 확인할 수 있습니다.
 
+### `.env` 필수 항목
+
+| 변수 | 예시 | 설명 |
+|------|------|------|
+| `DATABASE_URL` | `file:./dev.db` | SQLite DB 파일 경로 |
+| `JWT_SECRET` | (32자 이상 랜덤 문자열) | JWT 서명·검증용 비밀키 |
+| `JWT_EXPIRES_IN` | `1d` | JWT 만료 시간 (`1d`, `1h`, `3600` 등) |
+
+`.env`는 git에 올리지 않습니다. 템플릿은 `.env.example`을 참고하세요.
+
 ---
 
 ## 폴더 구조
@@ -34,6 +44,12 @@ npm run start:dev
 backend/
 ├── prisma/                  # DB 스키마 및 migration
 ├── src/                     # 애플리케이션 소스
+│   ├── auth/                # 인증 모듈 (JWT, DTO, Strategy, Guard)
+│   │   ├── dto/             # SignupDto, LoginDto
+│   │   ├── guards/          # JwtAuthGuard
+│   │   ├── strategies/      # JwtStrategy
+│   │   └── types/           # JwtPayload, RequestUser
+│   ├── users/               # 사용자 모듈
 │   ├── prisma/              # Prisma NestJS 모듈
 │   ├── app.module.ts        # 루트 모듈
 │   ├── app.controller.ts    # 기본 HTTP 컨트롤러
@@ -54,10 +70,31 @@ backend/
 | 파일 | 역할 |
 |------|------|
 | `main.ts` | NestJS 앱을 생성하고 HTTP 서버를 시작하는 진입점. 기본 포트는 `3000` |
-| `app.module.ts` | 앱의 루트 모듈. `PrismaModule`을 import하여 DB 서비스를 앱 전체에서 사용 가능하게 연결 |
+| `app.module.ts` | 루트 모듈. `ConfigModule`(전역), `PrismaModule`, `AuthModule`, `UsersModule` 연결 |
 | `app.controller.ts` | `GET /` 요청을 처리하는 기본 컨트롤러 |
 | `app.service.ts` | 컨트롤러가 호출하는 기본 비즈니스 로직 (`Hello World!` 반환) |
 | `app.controller.spec.ts` | `AppController` 단위 테스트 |
+
+### 인증 (`src/auth/`)
+
+| 파일 | 역할 |
+|------|------|
+| `auth.module.ts` | `PassportModule`, `JwtModule.registerAsync`, `JwtStrategy` 등록 |
+| `auth.controller.ts` | `/auth` prefix 컨트롤러 골격 (엔드포인트 미구현) |
+| `auth.service.ts` | 인증 비즈니스 로직 골격 (회원가입/로그인 미구현) |
+| `dto/signup.dto.ts` | 회원가입 요청 DTO (`email`, `password` + class-validator) |
+| `dto/login.dto.ts` | 로그인 요청 DTO (`email`, `password` + class-validator) |
+| `strategies/jwt.strategy.ts` | Bearer JWT 검증. `JWT_SECRET`으로 서명 확인 후 `RequestUser` 반환 |
+| `guards/jwt-auth.guard.ts` | `AuthGuard('jwt')`. 보호 API에 `@UseGuards`로 적용 예정 |
+| `types/jwt-payload.type.ts` | JWT payload 타입 (`sub`: User ID, `email`) |
+| `types/request-user.type.ts` | 인증 후 `req.user` 타입 (`userId`, `email`) |
+
+### 사용자 (`src/users/`)
+
+| 파일 | 역할 |
+|------|------|
+| `users.module.ts` | `UsersService` 등록 |
+| `users.service.ts` | User DB 접근 로직 골격 (미구현) |
 
 ### Prisma 연동 (`src/prisma/`)
 
@@ -81,7 +118,7 @@ backend/
 
 | 파일 | 역할 |
 |------|------|
-| `.env` | 로컬에서 사용하는 실제 환경 변수 (`DATABASE_URL`). git에 올리지 않음 |
+| `.env` | 로컬 환경 변수 (`DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`). git에 올리지 않음 |
 | `.env.example` | 필요한 환경 변수 키와 형식만 안내하는 템플릿. git에 포함 |
 
 ### 프로젝트 설정
@@ -105,27 +142,58 @@ backend/
 
 ---
 
+## JWT 인증 구조 (Issue #2)
+
+```
+.env (JWT_SECRET, JWT_EXPIRES_IN)
+    ↓ ConfigService
+AuthModule
+  ├── PassportModule          # Passport 프레임워크 활성화
+  ├── JwtModule.registerAsync # JwtService (토큰 발급 준비, 로직 미구현)
+  ├── JwtStrategy             # Bearer JWT 검증 → RequestUser
+  └── JwtAuthGuard            # AuthGuard('jwt') — POST /posts 등 보호용
+```
+
+**토큰 검증 흐름 (Guard 적용 시)**
+
+```
+요청 (Authorization: Bearer <token>)
+  → JwtAuthGuard
+  → JwtStrategy (JWT_SECRET으로 서명 검증)
+  → validate(): JwtPayload → RequestUser
+  → req.user에 사용자 정보 저장
+  → Controller 실행
+```
+
+---
+
 ## 사용 라이브러리와 선택 이유
 
 ### 런타임 의존성 (`dependencies`)
 
 | 라이브러리 | 선택 이유 |
 |-----------|-----------|
-| **@nestjs/common, @nestjs/core** | 모듈·컨트롤러·서비스 기반의 구조화된 백엔드 프레임워크. DI(의존성 주입)로 DB·인증 로직을 모듈 단위로 분리하기 적합 |
-| **@nestjs/platform-express** | NestJS의 기본 HTTP 어댑터. Express 기반으로 REST API 구현 |
-| **@prisma/client** | `schema.prisma`에서 정의한 모델을 타입 안전하게 조회·생성·수정할 수 있는 ORM 클라이언트 |
-| **reflect-metadata** | NestJS 데코레이터(`@Module`, `@Injectable` 등) 동작에 필요 |
-| **rxjs** | NestJS 내부 비동기 스트림 처리에 사용 |
+| **@nestjs/common, @nestjs/core** | 모듈·컨트롤러·서비스 기반의 구조화된 백엔드 프레임워크. DI로 DB·인증 로직을 모듈 단위로 분리 |
+| **@nestjs/platform-express** | NestJS의 기본 HTTP 어댑터. Express 기반 REST API |
+| **@nestjs/config** | `.env` 환경 변수를 `ConfigService`로 주입. JWT Secret 하드코딩 방지 |
+| **@nestjs/jwt, @nestjs/passport** | NestJS와 JWT·Passport 연동 |
+| **passport, passport-jwt** | Bearer JWT 추출 및 검증 (`JwtStrategy`) |
+| **bcrypt** | 비밀번호 해싱용 (패키지만 설치, 로직은 이후 Issue) |
+| **class-validator, class-transformer** | DTO 입력 검증 (`SignupDto`, `LoginDto`) |
+| **@prisma/client** | `schema.prisma` 모델을 타입 안전하게 조회·생성·수정 |
+| **reflect-metadata** | NestJS 데코레이터 동작에 필요 |
+| **rxjs** | NestJS 내부 비동기 스트림 처리 |
 
 ### 개발 의존성 (`devDependencies`)
 
 | 라이브러리 | 선택 이유 |
 |-----------|-----------|
-| **prisma** | `schema.prisma` 관리, migration 생성·적용, Prisma Client 생성을 위한 CLI. 개발·빌드 시에만 필요하므로 `devDependencies` |
+| **prisma** | `schema.prisma` 관리, migration, Prisma Client 생성 CLI |
+| **@types/passport-jwt, @types/bcrypt** | Passport JWT·bcrypt TypeScript 타입 |
 | **@nestjs/cli, @nestjs/schematics** | `nest g module` 등 코드 스캐폴딩 |
 | **typescript** | 타입 안전한 백엔드 개발 |
 | **jest, ts-jest, supertest** | 단위·E2E 테스트 |
-| **eslint, prettier** | 코드 품질·스타일 일관성 유지 |
+| **eslint, prettier** | 코드 품질·스타일 일관성 |
 
 ### DB: SQLite를 선택한 이유
 
@@ -151,17 +219,21 @@ backend/
 - `schema.prisma`: Prisma 문법상 `String`만 사용하고, `/// VARCHAR`, `/// TEXT` 주석으로 명세 타입을 표기
 - `migration.sql`: SQLite DDL에서 `VARCHAR(255)` / `TEXT`를 명시적으로 구분
 
-SQLite는 `VARCHAR`도 내부적으로 TEXT affinity로 저장하므로 **동작은 동일**하고, SQL 명세 표기만 맞춘 것입니다.
-
 ### 3. `.env` vs `.env.example` 분리
 
-**고민:** `.env.example`에 실제 경로(`file:./dev.db`)를 그대로 넣으면 템플릿 역할이 불분명해집니다.
+**고민:** `.env.example`에 실제 경로·Secret을 그대로 넣으면 템플릿 역할이 불분명해집니다.
 
 **해결:**
-- `.env`: 실제 로컬 값 (`DATABASE_URL="file:./dev.db"`)
-- `.env.example`: 플레이스홀더 (`DATABASE_URL="file:./<your-db-name>.db"`)
+- `.env`: 실제 로컬 값 (DB URL, JWT Secret 등)
+- `.env.example`: 플레이스홀더 (`your-jwt-secret`, `<your-db-name>`)
 
 `.env`는 `.gitignore`로 제외하고, `.env.example`만 git에 포함합니다.
+
+### 4. `JWT_EXPIRES_IN` TypeScript 타입
+
+**고민:** `ConfigService.getOrThrow<string>()` 반환 타입과 `@nestjs/jwt`의 `expiresIn`(ms `StringValue`) 타입이 맞지 않아 빌드 오류가 발생했습니다.
+
+**해결:** `configService.getOrThrow<string>('JWT_EXPIRES_IN') as StringValue`로 단언. `.env`에는 `1d` 등 유효한 시간 형식을 사용합니다.
 
 ---
 
@@ -198,7 +270,9 @@ npm run lint               # ESLint
 
 ## 이후 Issue 예정 작업
 
-- 회원가입 / 로그인 API
-- JWT 인증 (`JWT_SECRET` 환경 변수 추가 예정)
+- `POST /auth/signup`, `POST /auth/login` API 구현
+- `AuthService`에 bcrypt 해싱 및 JWT Access Token **발급** 로직
+- `UsersService` + `PrismaService` 연동
+- `main.ts`에 `ValidationPipe` 전역 등록
+- `POST /posts` 등 보호 API에 `JwtAuthGuard` 적용
 - 게시글 CRUD API
-- `password` bcrypt 해시 처리
