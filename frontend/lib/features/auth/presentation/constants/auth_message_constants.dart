@@ -11,6 +11,8 @@ abstract final class AuthErrorMessages {
   static const network = '네트워크 연결을 확인해주세요.';
   static const loginFailed =
       '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
+  static const signupFailed = '회원가입에 실패했습니다. 입력 정보를 확인해주세요.';
+  static const emailAlreadyExists = '이미 사용 중인 이메일입니다.';
 }
 
 abstract final class AuthErrorPatterns {
@@ -18,4 +20,6 @@ abstract final class AuthErrorPatterns {
   static const connectionRefused = 'Connection refused';
   static const connectionError = 'connection error';
   static const dioException = 'DioException';
+  static const statusCode409 = '409';
+  static const emailAlreadyExists = 'Email already exists';
 }

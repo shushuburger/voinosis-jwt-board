@@ -15,6 +15,23 @@ class AuthErrorMessage {
     return message;
   }
 
+  static String forSignup(String message) {
+    if (_isNetworkError(message)) {
+      return AuthErrorMessages.network;
+    }
+
+    if (message.contains(AuthErrorPatterns.statusCode409) ||
+        message.contains(AuthErrorPatterns.emailAlreadyExists)) {
+      return AuthErrorMessages.emailAlreadyExists;
+    }
+
+    if (message.contains(AuthErrorPatterns.dioException)) {
+      return AuthErrorMessages.signupFailed;
+    }
+
+    return message;
+  }
+
   static bool _isNetworkError(String message) {
     return message.contains(AuthErrorPatterns.socketException) ||
         message.contains(AuthErrorPatterns.connectionRefused) ||

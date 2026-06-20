@@ -30,4 +30,9 @@ abstract final class AuthUiText {
   static const loginButton = '로그인';
   static const signupPrompt = '아직 계정이 없으신가요? ';
   static const signupLink = '회원가입';
+  static const signupSubtitle = '게시판을 이용할 계정을 만들어주세요.';
+  static const signupCardTitle = '회원가입';
+  static const signupButton = '회원가입';
+  static const loginPrompt = '이미 계정이 있으신가요? ';
+  static const loginLink = '로그인';
 }

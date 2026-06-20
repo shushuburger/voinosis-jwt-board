@@ -18,7 +18,7 @@ class AuthValidators {
     return null;
   }
 
-  static String? password(String? value, {int minLength = 6}) {
+  static String? password(String? value, {int minLength = 8}) {
     final password = value ?? '';
     if (password.isEmpty) {
       return AuthValidationMessages.passwordRequired;
