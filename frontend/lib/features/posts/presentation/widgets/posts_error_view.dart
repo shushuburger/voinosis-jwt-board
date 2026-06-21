@@ -25,17 +25,17 @@ class PostsErrorView extends StatelessWidget {
             size: 48,
             color: PostsUiConstants.errorColor,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PostsUiConstants.stateIconTextSpacing),
           Text(
             message,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: PostsUiConstants.stateBodyFontSize,
               height: 1.5,
               color: PostsUiConstants.errorColor,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: PostsUiConstants.stateMessageButtonSpacing),
           AppPrimaryButton(
             label: PostsUiText.retryButton,
             onPressed: onRetry,

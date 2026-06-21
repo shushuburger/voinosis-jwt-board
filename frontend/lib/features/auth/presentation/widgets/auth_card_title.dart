@@ -14,7 +14,7 @@ class AuthCardTitle extends StatelessWidget {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 20,
+        fontSize: AuthUiConstants.titleFontSize,
         fontWeight: FontWeight.w700,
         color: AuthUiConstants.titleColor,
       ),

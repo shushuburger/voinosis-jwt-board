@@ -8,7 +8,7 @@ class AppPrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.minimumSize = const Size(120, 40),
     this.padding,
-    this.fontSize = 16,
+    this.fontSize = AuthUiConstants.buttonFontSize,
     this.isLoading = false,
     this.expand = false,
   });

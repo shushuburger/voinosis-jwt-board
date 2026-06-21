@@ -17,22 +17,22 @@ class PostsEmptyView extends StatelessWidget {
             size: 48,
             color: PostsUiConstants.subtitleColor.withValues(alpha: 0.6),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PostsUiConstants.stateIconTextSpacing),
           const Text(
             PostsUiText.emptyTitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: PostsUiConstants.stateTitleFontSize,
               fontWeight: FontWeight.w600,
               color: PostsUiConstants.headingColor,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PostsUiConstants.stateTitleSubtitleSpacing),
           const Text(
             PostsUiText.emptySubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: PostsUiConstants.stateBodyFontSize,
               height: 1.5,
               color: PostsUiConstants.subtitleColor,
             ),

@@ -39,12 +39,12 @@ class LabeledTextField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: AuthUiConstants.labelFontSize,
             fontWeight: FontWeight.w600,
             color: AuthUiConstants.labelColor,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AuthUiConstants.fieldLabelSpacing),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -70,7 +70,7 @@ class LabeledTextField extends StatelessWidget {
       hintText: hintText,
       hintStyle: const TextStyle(
         color: AuthUiConstants.hintColor,
-        fontSize: 14,
+        fontSize: AuthUiConstants.bodyFontSize,
       ),
       filled: true,
       fillColor: Colors.white,

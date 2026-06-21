@@ -24,4 +24,14 @@ abstract final class PostsUiConstants {
   static const createButtonPadding = EdgeInsets.symmetric(horizontal: 16);
   static const retryButtonSize = Size(120, 40);
   static const scrollLoadThreshold = 200.0;
+
+  static const stateIconTextSpacing = 16.0;
+  static const stateTitleSubtitleSpacing = 8.0;
+  static const stateMessageButtonSpacing = 20.0;
+  static const stateBodyFontSize = 14.0;
+  static const stateTitleFontSize = 18.0;
+  static const appBarTitleFontSize = 20.0;
+  static const compactBodyFontSize = 13.0;
+  static const paginationErrorSpacing = 8.0;
+  static const createButtonFontSize = 14.0;
 }

@@ -8,6 +8,7 @@ import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/create/create_post_screen.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_list_screen.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
+import 'package:voinosis_jwt_board/shared/constants/router_ui_text.dart';
 
 GoRouter createAppRouter(Ref ref) {
   final router = GoRouter(
@@ -35,9 +36,9 @@ GoRouter createAppRouter(Ref ref) {
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
-      appBar: AppBar(title: const Text('오류')),
+      appBar: AppBar(title: const Text(RouterUiText.errorTitle)),
       body: Center(
-        child: Text('페이지를 찾을 수 없습니다: ${state.uri}'),
+        child: Text('${RouterUiText.pageNotFoundPrefix}${state.uri}'),
       ),
     ),
   );

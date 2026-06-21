@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_text.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_constants.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_validators.dart';
 import 'package:voinosis_jwt_board/shared/widgets/labeled_text_field.dart';
@@ -39,7 +40,7 @@ class AuthEmailPasswordFields extends StatelessWidget {
           validator: (value) => emailError ?? AuthValidators.email(value),
           onChanged: onEmailChanged,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AuthUiConstants.emailPasswordSpacing),
         LabeledTextField(
           label: AuthUiText.passwordLabel,
           controller: passwordController,

@@ -27,7 +27,7 @@ class PostsAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         title,
         style: const TextStyle(
-          fontSize: 20,
+          fontSize: PostsUiConstants.appBarTitleFontSize,
           fontWeight: FontWeight.w600,
         ),
       ),

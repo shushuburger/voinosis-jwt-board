@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:voinosis_jwt_board/shared/constants/pagination_constants.dart';
 import 'package:voinosis_jwt_board/features/posts/data/posts_api_paths.dart';
 import 'package:voinosis_jwt_board/features/posts/model/create_post_request.dart';
 import 'package:voinosis_jwt_board/features/posts/model/post_model.dart';
@@ -20,8 +21,8 @@ class PostsRepository {
   final Dio _dio;
 
   Future<PostsResponse> fetchPosts({
-    int page = 1,
-    int limit = 10,
+    int page = PaginationConstants.defaultPage,
+    int limit = PaginationConstants.defaultLimit,
   }) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(

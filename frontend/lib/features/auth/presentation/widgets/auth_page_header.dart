@@ -25,7 +25,7 @@ class AuthPageHeader extends StatelessWidget {
             height: 1.3,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AuthUiConstants.headerSubtitleSpacing),
         Text(
           subtitle,
           textAlign: TextAlign.center,

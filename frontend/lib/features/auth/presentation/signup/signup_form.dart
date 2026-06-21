@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_constants.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_text.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_card_title.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_email_password_fields.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_form_card.dart';
@@ -42,7 +43,7 @@ class SignupForm extends StatelessWidget {
           title: AuthUiText.appTitle,
           subtitle: AuthUiText.signupSubtitle,
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: AuthUiConstants.formOuterSpacing),
         AuthFormCard(
           child: Form(
             key: formKey,
@@ -50,7 +51,7 @@ class SignupForm extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const AuthCardTitle(title: AuthUiText.signupCardTitle),
-                const SizedBox(height: 24),
+                const SizedBox(height: AuthUiConstants.cardTitleFieldSpacing),
                 AuthEmailPasswordFields(
                   emailController: emailController,
                   passwordController: passwordController,
@@ -61,7 +62,7 @@ class SignupForm extends StatelessWidget {
                   onEmailChanged: onEmailChanged,
                   onPasswordChanged: onPasswordChanged,
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: AuthUiConstants.fieldsSubmitSpacing),
                 AppPrimaryButton(
                   label: AuthUiText.signupButton,
                   isLoading: isLoading,
@@ -72,7 +73,7 @@ class SignupForm extends StatelessWidget {
                   ),
                   onPressed: onSubmit,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AuthUiConstants.submitLinkSpacing),
                 AuthLinkPrompt(
                   prompt: AuthUiText.loginPrompt,
                   linkLabel: AuthUiText.loginLink,

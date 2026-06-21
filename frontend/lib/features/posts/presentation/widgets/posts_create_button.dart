@@ -20,7 +20,7 @@ class PostsCreateButton extends StatelessWidget {
         onPressed: onPressed,
         minimumSize: PostsUiConstants.createButtonSize,
         padding: PostsUiConstants.createButtonPadding,
-        fontSize: 14,
+        fontSize: PostsUiConstants.createButtonFontSize,
       ),
     );
   }

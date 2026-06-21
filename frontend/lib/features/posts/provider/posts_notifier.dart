@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:voinosis_jwt_board/shared/constants/pagination_constants.dart';
 import 'package:voinosis_jwt_board/features/posts/data/posts_repository.dart';
 import 'package:voinosis_jwt_board/features/posts/data/posts_repository_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/model/posts_response.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_state.dart';
 
 class PostsNotifier extends Notifier<PostsState> {
-  static const _pageLimit = 10;
-
   @override
   PostsState build() => const PostsState();
 
@@ -103,7 +102,10 @@ class PostsNotifier extends Notifier<PostsState> {
 
   Future<PostsResponse> _fetchPage(int page) {
     final repository = ref.read(postsRepositoryProvider);
-    return repository.fetchPosts(page: page, limit: _pageLimit);
+    return repository.fetchPosts(
+      page: page,
+      limit: PaginationConstants.defaultLimit,
+    );
   }
 
   bool _hasReachedEnd(int page, int lastPage) => page >= lastPage;

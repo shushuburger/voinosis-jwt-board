@@ -1,3 +1,4 @@
+import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_validation_constants.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_message_constants.dart';
 
 class AuthValidators {
@@ -18,14 +19,16 @@ class AuthValidators {
     return null;
   }
 
-  static String? password(String? value, {int minLength = 8}) {
+  static String? password(String? value) {
     final password = value ?? '';
     if (password.isEmpty) {
       return AuthValidationMessages.passwordRequired;
     }
 
-    if (password.length < minLength) {
-      return AuthValidationMessages.passwordMinLength(minLength);
+    if (password.length < AuthValidationConstants.passwordMinLength) {
+      return AuthValidationMessages.passwordMinLength(
+        AuthValidationConstants.passwordMinLength,
+      );
     }
 
     return null;
