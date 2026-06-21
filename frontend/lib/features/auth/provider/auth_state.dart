@@ -37,4 +37,23 @@ class AuthState {
           emailError: emailError,
           passwordError: passwordError,
         );
+
+  AuthState copyWith({
+    AuthStatus? status,
+    String? errorMessage,
+    String? emailError,
+    String? passwordError,
+    bool clearEmailError = false,
+    bool clearPasswordError = false,
+    bool clearErrorMessage = false,
+  }) {
+    return AuthState(
+      status: status ?? this.status,
+      errorMessage:
+          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      emailError: clearEmailError ? null : (emailError ?? this.emailError),
+      passwordError:
+          clearPasswordError ? null : (passwordError ?? this.passwordError),
+    );
+  }
 }

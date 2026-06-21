@@ -71,4 +71,20 @@ class AuthNotifier extends Notifier<AuthState> {
     await secureStorage.deleteToken();
     state = const AuthState.unauthenticated();
   }
+
+  void clearEmailError() {
+    if (state.emailError == null) {
+      return;
+    }
+
+    state = state.copyWith(clearEmailError: true);
+  }
+
+  void clearPasswordError() {
+    if (state.passwordError == null) {
+      return;
+    }
+
+    state = state.copyWith(clearPasswordError: true);
+  }
 }

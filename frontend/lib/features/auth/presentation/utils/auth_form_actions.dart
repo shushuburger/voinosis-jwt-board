@@ -18,7 +18,6 @@ class AuthFormActions {
   static void applyFieldErrors({
     required GlobalKey<FormState> formKey,
     required AuthState next,
-    required void Function(String? emailError, String? passwordError) onApply,
   }) {
     if (next.status != AuthStatus.error) {
       return;
@@ -27,8 +26,6 @@ class AuthFormActions {
     if (next.emailError == null && next.passwordError == null) {
       return;
     }
-
-    onApply(next.emailError, next.passwordError);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       formKey.currentState?.validate();

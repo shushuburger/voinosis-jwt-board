@@ -29,7 +29,10 @@ class CreatePostNotifier extends Notifier<CreatePostState> {
     try {
       final repository = ref.read(postsRepositoryProvider);
       await repository.createPost(
-        CreatePostRequest(title: title, content: content),
+        CreatePostRequest(
+          title: title.trim(),
+          content: content.trim(),
+        ),
       );
 
       state = state.copyWith(

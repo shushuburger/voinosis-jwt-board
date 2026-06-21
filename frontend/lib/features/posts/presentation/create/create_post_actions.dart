@@ -28,8 +28,8 @@ class CreatePostActions {
     return AuthFormActions.submitIfValid(
       formKey: formKey,
       action: () => ref.read(createPostProvider.notifier).submitPost(
-            title: title.trim(),
-            content: content.trim(),
+            title: title,
+            content: content,
           ),
     );
   }

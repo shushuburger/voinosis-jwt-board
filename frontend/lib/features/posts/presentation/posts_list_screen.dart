@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_actions.dart';
@@ -12,6 +14,7 @@ import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_pag
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_pagination_loading_view.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_state.dart';
+import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
 
 class PostsListScreen extends ConsumerStatefulWidget {
   const PostsListScreen({super.key});
@@ -50,12 +53,26 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
   }
 
   Future<void> _onRefresh() {
-    return PostsActions.refreshPosts(ref: ref, context: context);
+    return PostsActions.refreshPosts(ref);
   }
 
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(postsProvider);
+
+    ref.listen<PostsState>(postsProvider, (previous, next) {
+      final message = next.refreshErrorMessage;
+      if (message == null || message == previous?.refreshErrorMessage) {
+        return;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      AuthFormActions.showErrorSnackBar(context, message);
+      ref.read(postsProvider.notifier).clearRefreshError();
+    });
 
     return Scaffold(
       backgroundColor: PostsUiConstants.backgroundColor,
@@ -73,10 +90,7 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
         ),
         actions: [
           PostsCreateButton(
-            onPressed: () => PostsActions.onCreatePressed(
-              ref: ref,
-              context: context,
-            ),
+            onPressed: () => context.go(RoutePaths.postsCreate),
           ),
         ],
       ),

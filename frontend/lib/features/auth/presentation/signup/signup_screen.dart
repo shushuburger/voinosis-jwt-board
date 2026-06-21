@@ -20,8 +20,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _emailError;
-  String? _passwordError;
 
   @override
   void dispose() {
@@ -33,11 +31,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Future<void> _handleSignup() async {
     FocusScope.of(context).unfocus();
 
-    setState(() {
-      _emailError = null;
-      _passwordError = null;
-    });
-
     await SignupActions.submit(
       ref: ref,
       formKey: _formKey,
@@ -46,42 +39,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 
-  void _clearEmailError(String _) {
-    if (_emailError == null) {
-      return;
-    }
-
-    setState(() => _emailError = null);
-  }
-
-  void _clearPasswordError(String _) {
-    if (_passwordError == null) {
-      return;
-    }
-
-    setState(() => _passwordError = null);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(authProvider).status == AuthStatus.loading;
+    final authState = ref.watch(authProvider);
+    final isLoading = authState.status == AuthStatus.loading;
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (!mounted) {
         return;
       }
 
-      AuthFormActions.applyFieldErrors(
-        formKey: _formKey,
-        next: next,
-        onApply: (emailError, passwordError) {
-          setState(() {
-            _emailError = emailError;
-            _passwordError = passwordError;
-          });
-        },
-      );
-
+      AuthFormActions.applyFieldErrors(formKey: _formKey, next: next);
       SignupActions.handleAuthStateChange(
         context: context,
         previous: previous,
@@ -97,10 +65,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         isLoading: isLoading,
         onSubmit: _handleSignup,
         onLoginPressed: () => context.go(RoutePaths.login),
-        emailError: _emailError,
-        passwordError: _passwordError,
-        onEmailChanged: _clearEmailError,
-        onPasswordChanged: _clearPasswordError,
+        emailError: authState.emailError,
+        passwordError: authState.passwordError,
+        onEmailChanged: (_) =>
+            ref.read(authProvider.notifier).clearEmailError(),
+        onPasswordChanged: (_) =>
+            ref.read(authProvider.notifier).clearPasswordError(),
       ),
     );
   }

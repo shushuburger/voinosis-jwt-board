@@ -74,6 +74,7 @@ class PostsNotifier extends Notifier<PostsState> {
     state = state.copyWith(
       isRefreshing: true,
       clearPaginationErrorMessage: true,
+      clearRefreshErrorMessage: true,
     );
 
     try {
@@ -84,10 +85,20 @@ class PostsNotifier extends Notifier<PostsState> {
         currentPage: response.meta.page,
         hasReachedEnd: _hasReachedEnd(response.meta.page, response.meta.lastPage),
       );
-    } on PostsFetchException {
-      state = state.copyWith(isRefreshing: false);
-      rethrow;
+    } on PostsFetchException catch (error) {
+      state = state.copyWith(
+        isRefreshing: false,
+        refreshErrorMessage: error.message,
+      );
     }
+  }
+
+  void clearRefreshError() {
+    if (state.refreshErrorMessage == null) {
+      return;
+    }
+
+    state = state.copyWith(clearRefreshErrorMessage: true);
   }
 
   Future<PostsResponse> _fetchPage(int page) {
