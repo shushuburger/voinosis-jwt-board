@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:voinosis_jwt_board/shared/constants/auth_api_constants.dart';
 import 'package:voinosis_jwt_board/shared/storage/secure_storage_service.dart';
 
-typedef OnUnauthorized = void Function();
+typedef OnUnauthorized = Future<void> Function();
 
 class JwtAuthInterceptor extends Interceptor {
   JwtAuthInterceptor({
@@ -29,9 +29,12 @@ class JwtAuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (err.response?.statusCode == 401 && !_isAuthRequest(err)) {
-      _onUnauthorized?.call();
+      await _onUnauthorized?.call();
     }
 
     handler.next(err);

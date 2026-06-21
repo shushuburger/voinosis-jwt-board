@@ -23,12 +23,21 @@ class PostsAppBar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: PostsUiConstants.headingColor,
       elevation: 0,
       scrolledUnderElevation: 0,
+      centerTitle: false,
+      titleSpacing: leading == null ? PostsUiConstants.pageHorizontalPadding : 0,
       leading: leading,
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: PostsUiConstants.appBarTitleFontSize,
-          fontWeight: FontWeight.w600,
+      title: Align(
+        alignment: Alignment.centerLeft,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: PostsUiConstants.appBarTitleFontSize,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
       actions: actions,

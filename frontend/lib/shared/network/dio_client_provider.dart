@@ -8,8 +8,8 @@ final dioClientProvider = Provider<DioClient>((ref) {
 
   return DioClient(
     secureStorage: secureStorage,
-    onUnauthorized: () {
-      ref.read(authProvider.notifier).logout();
+    onUnauthorized: () async {
+      await ref.read(authProvider.notifier).logout();
     },
   );
 });

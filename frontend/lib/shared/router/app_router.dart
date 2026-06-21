@@ -43,8 +43,13 @@ GoRouter createAppRouter(Ref ref) {
     ),
   );
 
-  ref.listen(authProvider, (_, __) {
-    router.refresh();
+  ref.listen(authProvider, (_, next) {
+    final location = router.state.matchedLocation;
+    final target = _redirect(next, location);
+
+    if (target != null && target != location) {
+      router.go(target);
+    }
   });
 
   ref.onDispose(router.dispose);
