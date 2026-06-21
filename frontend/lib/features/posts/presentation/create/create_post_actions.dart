@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/create_post_ui_text.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/posts_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_state.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
@@ -34,13 +35,18 @@ class CreatePostActions {
     );
   }
 
-  static void handleStateChange({
+  static Future<void> handleStateChange({
+    required WidgetRef ref,
     required BuildContext context,
     required CreatePostState? previous,
     required CreatePostState next,
-  }) {
+  }) async {
     if (next.isSuccess && previous?.isSuccess != true) {
       SnackBarUtils.showMessage(context, CreatePostUiText.successMessage);
+      await PostsActions.refreshPosts(ref);
+      if (!context.mounted) {
+        return;
+      }
       context.go(RoutePaths.home);
       return;
     }

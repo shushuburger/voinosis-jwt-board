@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/create/create_post_actions.dart';
@@ -54,10 +56,13 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         return;
       }
 
-      CreatePostActions.handleStateChange(
-        context: context,
-        previous: previous,
-        next: next,
+      unawaited(
+        CreatePostActions.handleStateChange(
+          ref: ref,
+          context: context,
+          previous: previous,
+          next: next,
+        ),
       );
     });
 
