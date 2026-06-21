@@ -43,7 +43,6 @@ npm run start:dev             # http://localhost:3000
 cd frontend
 
 flutter pub get
-flutter run -d chrome    # 또는 edge / windows
 ```
 
 **API Base URL** — `frontend/lib/shared/constants/api_constants.dart`
@@ -52,10 +51,41 @@ flutter run -d chrome    # 또는 edge / windows
 static const baseUrl = 'http://localhost:3000';
 ```
 
+#### 일반 실행 (디버그)
+
+```bash
+flutter run -d chrome    # 또는 edge / windows
+```
+
+개발·hot reload에 적합합니다.
+
+#### Release 실행 (브라우저 재시작·자동 로그인 테스트)
+
+```bash
+flutter run -d chrome --release --web-port=8080
+```
+
+| 옵션 | 설명 |
+|------|------|
+| `--release` | 디버그 연결 없이 실행. Chrome을 완전히 종료한 뒤 URL로 다시 접속할 때 적합 |
+| `--web-port=8080` | 포트 고정. `localhost`마다 `localStorage`가 분리되므로 **동일 포트**로 접속해야 JWT가 유지됨 |
+
+> 디버그 모드(`flutter run -d chrome`)에서 Chrome을 **완전히 종료**한 뒤 개발 서버 URL만 다시 열면 **흰 화면**이 나올 수 있습니다. 이는 JWT 버그가 아니라 Flutter Web 디버그 세션이 끊긴 때문입니다. 자동 로그인을 확인할 때는 Release 모드 또는 **F5 새로고침**을 사용하세요.
+
+**자동 로그인 확인 (Release)**
+
+1. Backend 실행 중인 상태에서 위 Release 명령 실행
+2. `http://localhost:8080` 에서 로그인 → AppBar **로그아웃** 버튼 확인
+3. Chrome 완전 종료
+4. 같은 Release 명령으로 다시 실행 → `http://localhost:8080` 접속
+5. **로그아웃** 버튼이 보이면 `localStorage` 토큰 복원 성공
+
+Web에서 JWT는 `flutter_secure_storage` → 브라우저 `localStorage`에 저장됩니다. 새로고침(F5), 탭 재접속, Chrome 재시작(동일 origin) 후에도 토큰이 남아 있으면 `restoreSession()`이 로그인 상태를 복원합니다.
+
 ### 실행 순서
 
 1. Backend `npm run start:dev`
-2. Frontend `flutter run -d chrome`
+2. Frontend `flutter run -d chrome` (또는 자동 로그인 테스트 시 `--release --web-port=8080`)
 3. 회원가입 → 로그인 → 목록 조회 → 글 작성
 
 ---
@@ -129,7 +159,7 @@ onError    → 401이면서 /auth/login, /auth/signup이 아닐 때만 await log
 
 #### 결과
 
-- 앱 재시작 후 JWT가 있으면 **자동 로그인**
+- 앱 재시작 후 JWT가 있으면 **자동 로그인** (Web: `localStorage` 기반, 동일 `localhost` origin — 확인 방법은 §1 Frontend Release 실행 참고)
 - 틀린 비밀번호 → **비밀번호 필드 인라인 에러**만, logout 없음
 - 토큰 만료 후 글 작성 → **session expired SnackBar** + logout + `/login` redirect
 
