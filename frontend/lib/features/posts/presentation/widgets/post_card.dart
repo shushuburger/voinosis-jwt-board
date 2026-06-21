@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voinosis_jwt_board/features/posts/model/post_model.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
-import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 
 class PostCard extends StatelessWidget {
   const PostCard({
@@ -54,7 +53,7 @@ class PostCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '${PostsUiText.authorPrefix} #${post.authorId} · ${_formatDate(post.createdAt)}',
+            _formatDate(post.createdAt),
             style: const TextStyle(
               fontSize: 12,
               color: PostsUiConstants.subtitleColor,

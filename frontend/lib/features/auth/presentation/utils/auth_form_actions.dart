@@ -27,6 +27,18 @@ class AuthFormActions {
       return;
     }
 
+    _revalidateForm(formKey);
+  }
+
+  static void clearFieldError({
+    required GlobalKey<FormState> formKey,
+    required VoidCallback clearError,
+  }) {
+    clearError();
+    _revalidateForm(formKey);
+  }
+
+  static void _revalidateForm(GlobalKey<FormState> formKey) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       formKey.currentState?.validate();
     });

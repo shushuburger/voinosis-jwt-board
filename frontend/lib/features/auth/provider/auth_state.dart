@@ -33,7 +33,7 @@ class AuthState {
     String? passwordError,
   }) : this(
           status: AuthStatus.error,
-          errorMessage: message ?? emailError ?? passwordError,
+          errorMessage: message,
           emailError: emailError,
           passwordError: passwordError,
         );

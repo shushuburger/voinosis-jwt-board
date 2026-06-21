@@ -63,10 +63,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         onSignupPressed: () => context.go(RoutePaths.signup),
         emailError: authState.emailError,
         passwordError: authState.passwordError,
-        onEmailChanged: (_) =>
-            ref.read(authProvider.notifier).clearEmailError(),
-        onPasswordChanged: (_) =>
-            ref.read(authProvider.notifier).clearPasswordError(),
+        onEmailChanged: (_) => AuthFormActions.clearFieldError(
+          formKey: _formKey,
+          clearError: ref.read(authProvider.notifier).clearEmailError,
+        ),
+        onPasswordChanged: (_) => AuthFormActions.clearFieldError(
+          formKey: _formKey,
+          clearError: ref.read(authProvider.notifier).clearPasswordError,
+        ),
       ),
     );
   }

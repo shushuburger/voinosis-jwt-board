@@ -81,7 +81,7 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
         title: PostsUiText.screenTitle,
         actions: [
           PostsCreateButton(
-            onPressed: () => context.go(RoutePaths.postsCreate),
+            onPressed: () => context.push(RoutePaths.postsCreate),
           ),
         ],
       ),

@@ -40,7 +40,8 @@ class AuthNotifier extends Notifier<AuthState> {
       state = AuthState.error(
         message: fieldErrors.fallbackMessage,
         emailError: fieldErrors.email,
-        passwordError: fieldErrors.password,
+        passwordError:
+            fieldErrors.password ?? fieldErrors.fallbackMessage,
       );
     }
   }
@@ -60,7 +61,7 @@ class AuthNotifier extends Notifier<AuthState> {
       final fieldErrors = error.fieldErrors;
       state = AuthState.error(
         message: fieldErrors.fallbackMessage,
-        emailError: fieldErrors.email,
+        emailError: fieldErrors.email ?? fieldErrors.fallbackMessage,
         passwordError: fieldErrors.password,
       );
     }

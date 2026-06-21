@@ -1,6 +1,6 @@
 abstract final class AuthUiText {
   static const appTitle = 'JWT 익명 게시판';
-  static const loginSubtitle = '로그인하고 게시글을 확인해보세요.';
+  static const loginSubtitle = '로그인하고 게시글을 작성해보세요.';
   static const loginCardTitle = '로그인';
   static const emailLabel = '이메일';
   static const passwordLabel = '비밀번호';

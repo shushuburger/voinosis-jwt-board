@@ -65,6 +65,11 @@ class CreatePostActions {
       return;
     }
 
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+
+    context.go(RoutePaths.home);
   }
 }
