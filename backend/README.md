@@ -1,13 +1,18 @@
 # Backend
 
-JWT 인증 게시판 프로젝트의 NestJS 백엔드입니다.  
-현재 **Issue #1**(프로젝트 기반 + Prisma/SQLite), **Issue #2**(JWT 인증 기반 구조), **Issue #3**(회원가입/로그인 API + JWT Access Token 발급), **Issue #4**(게시글 목록 조회 / 작성 API + JWT 보호), **Issue #5**(Validation 및 Exception Handling)까지 완료된 상태입니다.
+JWT 인증 게시판 프로젝트의 NestJS 백엔드입니다. 구현 범위는 다음과 같습니다.
+
+- NestJS + Prisma/SQLite 프로젝트 기반
+- JWT 인증 구조 (Strategy, Guard)
+- 회원가입/로그인 API + JWT Access Token 발급
+- 게시글 목록 조회·작성 API (`GET /posts` 공개, `POST /posts` JWT 보호)
+- Global ValidationPipe, 일관된 Exception 응답, E2E 테스트
 
 로컬 실행 방법(Env, migration)은 [루트 README](../README.md#1-로컬-실행-방법)를 참고하세요.
 
 ---
 
-## API 엔드포인트 (Issue #3)
+## API 엔드포인트 — 인증
 
 | Method | Path | 설명 | 성공 상태 코드 |
 |--------|------|------|----------------|
@@ -82,7 +87,7 @@ JWT 인증 게시판 프로젝트의 NestJS 백엔드입니다.
 
 ---
 
-## API 엔드포인트 (Issue #4)
+## API 엔드포인트 — 게시글
 
 | Method | Path | 설명 | 인증 | 성공 상태 코드 |
 |--------|------|------|------|----------------|
@@ -259,14 +264,14 @@ backend/
 │   │   ├── strategies/      # JwtStrategy
 │   │   └── types/           # JwtPayload, RequestUser
 │   ├── users/               # 사용자 모듈
-│   ├── posts/               # 게시글 모듈 (Issue #4)
+│   ├── posts/               # 게시글 모듈
 │   │   └── dto/             # CreatePostDto, FindPostsQueryDto
 │   ├── prisma/              # Prisma NestJS 모듈
 │   ├── app.module.ts        # 루트 모듈
 │   ├── app.controller.ts    # 기본 HTTP 컨트롤러
 │   ├── app.service.ts       # 기본 서비스
 │   └── main.ts              # 앱 진입점 (ValidationPipe 전역 등록)
-├── test/                    # E2E 테스트 (Issue #5 validation 시나리오 포함)
+├── test/                    # E2E 테스트 (validation 시나리오 포함)
 ├── .env                     # 로컬 환경 변수 (git 제외)
 ├── .env.example             # 환경 변수 템플릿
 └── package.json
@@ -287,7 +292,7 @@ backend/
 
 **고민:** `npm install prisma` 시 최신 Prisma 7이 설치되었고, `schema.prisma`에 `url = env("DATABASE_URL")`을 넣을 수 없는 에러가 발생했습니다.
 
-**해결:** Prisma 7은 datasource URL을 `prisma.config.ts`로 분리하는 새 구조를 사용합니다. Issue 명세와 `@prisma/client` import 방식에 맞추기 위해 **Prisma 6.19.3**을 사용했습니다.
+**해결:** Prisma 7은 datasource URL을 `prisma.config.ts`로 분리하는 새 구조를 사용합니다. 과제 명세와 `@prisma/client` import 방식에 맞추기 위해 **Prisma 6.19.3**을 사용했습니다.
 
 ### 2. VARCHAR vs TEXT — 명세와 Prisma/SQLite 차이
 
