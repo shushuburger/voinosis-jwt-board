@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/post_card.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_app_bar.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_auth_button.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_create_button.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_empty_view.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_error_view.dart';
@@ -60,6 +63,10 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(postsProvider);
+    final authState = ref.watch(authProvider);
+    final isAuthenticated = authState.status == AuthStatus.authenticated;
+    final isAuthReady = authState.status != AuthStatus.initial &&
+        authState.status != AuthStatus.loading;
 
     ref.listen<PostsState>(postsProvider, (previous, next) {
       final message = next.refreshErrorMessage;
@@ -80,6 +87,21 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
       appBar: PostsAppBar(
         title: PostsUiText.screenTitle,
         actions: [
+          PostsAuthButton(
+            label: isAuthenticated
+                ? PostsUiText.logoutButton
+                : PostsUiText.loginButton,
+            onPressed: !isAuthReady
+                ? null
+                : () {
+                    if (isAuthenticated) {
+                      PostsActions.logout(ref);
+                      return;
+                    }
+
+                    context.go(RoutePaths.login);
+                  },
+          ),
           PostsCreateButton(
             onPressed: () => context.push(RoutePaths.postsCreate),
           ),

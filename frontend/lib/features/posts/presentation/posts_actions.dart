@@ -1,8 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_provider.dart';
 
 class PostsActions {
   PostsActions._();
+
+  static Future<void> logout(WidgetRef ref) {
+    return ref.read(authProvider.notifier).logout();
+  }
 
   static Future<void> fetchInitialPosts(WidgetRef ref) {
     return ref.read(postsProvider.notifier).fetchInitialPosts();

@@ -18,9 +18,11 @@ abstract final class PostsUiConstants {
   static const buttonBorderRadius = AuthUiConstants.fieldBorderRadius;
   static const cardSpacing = 12.0;
   static const appBarActionPadding = 16.0;
+  static const appBarActionSpacing = 8.0;
   static const stateViewHorizontalPadding = 32.0;
 
-  static const createButtonSize = Size(72, 36);
+  static const authButtonSize = Size(88, 36);
+  static const createButtonSize = Size(96, 36);
   static const createButtonPadding = EdgeInsets.symmetric(horizontal: 16);
   static const retryButtonSize = Size(120, 40);
   static const scrollLoadThreshold = 200.0;
