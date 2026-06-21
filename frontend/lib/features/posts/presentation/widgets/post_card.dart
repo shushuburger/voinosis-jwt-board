@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voinosis_jwt_board/features/posts/model/post_model.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
-import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 
 class PostCard extends StatelessWidget {
   const PostCard({
@@ -15,16 +14,18 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(PostsUiConstants.cardPadding),
       decoration: BoxDecoration(
         color: PostsUiConstants.cardBackgroundColor,
         borderRadius: BorderRadius.circular(PostsUiConstants.cardBorderRadius),
         border: Border.all(color: PostsUiConstants.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(
+              alpha: PostsUiConstants.cardShadowAlpha,
+            ),
+            blurRadius: PostsUiConstants.cardShadowBlurRadius,
+            offset: const Offset(0, PostsUiConstants.cardShadowOffsetY),
           ),
         ],
       ),
@@ -36,27 +37,27 @@ class PostCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: PostsUiConstants.cardTitleFontSize,
               fontWeight: FontWeight.w600,
               color: PostsUiConstants.headingColor,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PostsUiConstants.cardTitleContentSpacing),
           Text(
             post.content,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 14,
-              height: 1.5,
+              fontSize: PostsUiConstants.cardContentFontSize,
+              height: PostsUiConstants.cardContentLineHeight,
               color: PostsUiConstants.subtitleColor,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: PostsUiConstants.cardContentDateSpacing),
           Text(
-            '${PostsUiText.authorPrefix} #${post.authorId} · ${_formatDate(post.createdAt)}',
+            _formatDate(post.createdAt),
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: PostsUiConstants.cardDateFontSize,
               color: PostsUiConstants.subtitleColor,
             ),
           ),

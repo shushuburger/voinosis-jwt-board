@@ -1,21 +1,15 @@
-enum AuthStatus {
-  initial,
-  loading,
-  authenticated,
-  unauthenticated,
-  error,
-}
+export 'auth_status.dart';
+
+import 'package:voinosis_jwt_board/features/auth/provider/auth_status.dart';
 
 class AuthState {
   const AuthState({
     this.status = AuthStatus.initial,
-    this.errorMessage,
     this.emailError,
     this.passwordError,
   });
 
   final AuthStatus status;
-  final String? errorMessage;
   final String? emailError;
   final String? passwordError;
 
@@ -28,13 +22,26 @@ class AuthState {
   const AuthState.unauthenticated() : this(status: AuthStatus.unauthenticated);
 
   AuthState.error({
-    String? message,
     String? emailError,
     String? passwordError,
   }) : this(
           status: AuthStatus.error,
-          errorMessage: message ?? emailError ?? passwordError,
           emailError: emailError,
           passwordError: passwordError,
         );
+
+  AuthState copyWith({
+    AuthStatus? status,
+    String? emailError,
+    String? passwordError,
+    bool clearEmailError = false,
+    bool clearPasswordError = false,
+  }) {
+    return AuthState(
+      status: status ?? this.status,
+      emailError: clearEmailError ? null : (emailError ?? this.emailError),
+      passwordError:
+          clearPasswordError ? null : (passwordError ?? this.passwordError),
+    );
+  }
 }

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
+import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/post_card.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_app_bar.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_auth_button.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_create_button.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_empty_view.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_error_view.dart';
@@ -12,6 +17,8 @@ import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_pag
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_pagination_loading_view.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_state.dart';
+import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
+import 'package:voinosis_jwt_board/shared/utils/snackbar_utils.dart';
 
 class PostsListScreen extends ConsumerStatefulWidget {
   const PostsListScreen({super.key});
@@ -50,33 +57,53 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
   }
 
   Future<void> _onRefresh() {
-    return PostsActions.refreshPosts(ref: ref, context: context);
+    return PostsActions.refreshPosts(ref);
   }
 
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(postsProvider);
+    final authState = ref.watch(authProvider);
+    final isAuthenticated = authState.status == AuthStatus.authenticated;
+    final isAuthReady = authState.status != AuthStatus.initial &&
+        authState.status != AuthStatus.loading;
+
+    ref.listen<PostsState>(postsProvider, (previous, next) {
+      final message = next.refreshErrorMessage;
+      if (message == null || message == previous?.refreshErrorMessage) {
+        return;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      SnackBarUtils.showMessage(context, message);
+      ref.read(postsProvider.notifier).clearRefreshError();
+    });
 
     return Scaffold(
       backgroundColor: PostsUiConstants.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: PostsUiConstants.appBarBackgroundColor,
-        foregroundColor: PostsUiConstants.headingColor,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: const Text(
-          PostsUiText.screenTitle,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+      appBar: PostsAppBar(
+        title: PostsUiText.screenTitle,
         actions: [
+          PostsAuthButton(
+            label: isAuthenticated
+                ? PostsUiText.logoutButton
+                : PostsUiText.loginButton,
+            onPressed: !isAuthReady
+                ? null
+                : () {
+                    if (isAuthenticated) {
+                      PostsActions.logout(ref);
+                      return;
+                    }
+
+                    context.go(RoutePaths.login);
+                  },
+          ),
           PostsCreateButton(
-            onPressed: () => PostsActions.onCreatePressed(
-              ref: ref,
-              context: context,
-            ),
+            onPressed: () => context.push(RoutePaths.postsCreate),
           ),
         ],
       ),

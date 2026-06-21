@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
+import 'package:voinosis_jwt_board/shared/constants/app_ui_constants.dart';
 
-class PostsPrimaryButton extends StatelessWidget {
-  const PostsPrimaryButton({
+class AppPrimaryButton extends StatelessWidget {
+  const AppPrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.minimumSize = const Size(120, 40),
     this.padding,
-    this.fontSize = 16,
+    this.fontSize = AppUiConstants.buttonFontSize,
     this.isLoading = false,
     this.expand = false,
   });
@@ -26,24 +26,25 @@ class PostsPrimaryButton extends StatelessWidget {
     final button = FilledButton(
       onPressed: isLoading ? null : onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: PostsUiConstants.primaryColor,
-        disabledBackgroundColor:
-            PostsUiConstants.primaryColor.withValues(alpha: 0.6),
+        backgroundColor: AppUiConstants.primaryColor,
+        disabledBackgroundColor: AppUiConstants.primaryColor.withValues(
+          alpha: AppUiConstants.buttonDisabledAlpha,
+        ),
         foregroundColor: Colors.white,
         minimumSize: minimumSize,
         padding: padding,
         shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(PostsUiConstants.buttonBorderRadius),
+              BorderRadius.circular(AppUiConstants.fieldBorderRadius),
         ),
         elevation: 0,
       ),
       child: isLoading
           ? const SizedBox(
-              width: 22,
-              height: 22,
+              width: AppUiConstants.buttonLoadingIndicatorSize,
+              height: AppUiConstants.buttonLoadingIndicatorSize,
               child: CircularProgressIndicator(
-                strokeWidth: 2,
+                strokeWidth: AppUiConstants.buttonLoadingStrokeWidth,
                 color: Colors.white,
               ),
             )

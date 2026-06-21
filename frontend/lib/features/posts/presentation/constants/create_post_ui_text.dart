@@ -1,5 +1,5 @@
 abstract final class CreatePostUiText {
-  static const screenTitle = 'Create Post';
+  static const screenTitle = '글 작성하기';
   static const titleLabel = '제목';
   static const contentLabel = '본문';
   static const titleHint = '제목을 입력해주세요.';

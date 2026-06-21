@@ -1,10 +1,11 @@
+import 'package:voinosis_jwt_board/shared/constants/app_ui_text.dart';
+
 abstract final class PostsUiText {
-  static const screenTitle = 'Posts';
-  static const createButton = 'Create';
+  static const screenTitle = AppUiText.appTitle;
+  static const createButton = '글 작성하기';
+  static const loginButton = AppUiText.login;
+  static const logoutButton = '로그아웃';
   static const emptyTitle = '게시글이 없습니다';
   static const emptySubtitle = '첫 번째 게시글을 작성해보세요.';
   static const retryButton = '다시 시도';
-  static const authorPrefix = '작성자';
-  static const createPlaceholderMessage =
-      '게시글 작성 화면은 Issue #9에서 구현 예정입니다.';
 }

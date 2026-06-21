@@ -1,15 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_actions.dart';
 import 'package:voinosis_jwt_board/features/auth/provider/auth_provider.dart';
-import 'package:voinosis_jwt_board/features/auth/provider/auth_state.dart';
-import 'package:voinosis_jwt_board/features/posts/data/posts_repository.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_provider.dart';
-import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
 
 class PostsActions {
   PostsActions._();
+
+  static Future<void> logout(WidgetRef ref) {
+    return ref.read(authProvider.notifier).logout();
+  }
 
   static Future<void> fetchInitialPosts(WidgetRef ref) {
     return ref.read(postsProvider.notifier).fetchInitialPosts();
@@ -19,30 +17,7 @@ class PostsActions {
     return ref.read(postsProvider.notifier).fetchNextPage();
   }
 
-  static Future<void> refreshPosts({
-    required WidgetRef ref,
-    required BuildContext context,
-  }) async {
-    try {
-      await ref.read(postsProvider.notifier).refreshPosts();
-    } on PostsFetchException catch (error) {
-      if (context.mounted) {
-        AuthFormActions.showErrorSnackBar(context, error.message);
-      }
-    }
-  }
-
-  static void onCreatePressed({
-    required WidgetRef ref,
-    required BuildContext context,
-  }) {
-    final authState = ref.read(authProvider);
-
-    if (authState.status == AuthStatus.authenticated) {
-      context.go(RoutePaths.postsCreate);
-      return;
-    }
-
-    context.go(RoutePaths.login);
+  static Future<void> refreshPosts(WidgetRef ref) {
+    return ref.read(postsProvider.notifier).refreshPosts();
   }
 }

@@ -19,9 +19,11 @@ class AuthFormCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AuthUiConstants.cardBorderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(
+              alpha: AuthUiConstants.formCardShadowAlpha,
+            ),
+            blurRadius: AuthUiConstants.formCardShadowBlurRadius,
+            offset: const Offset(0, AuthUiConstants.formCardShadowOffsetY),
           ),
         ],
       ),

@@ -27,14 +27,6 @@ class LoginActions {
   }) {
     if (next.status == AuthStatus.authenticated) {
       context.go(RoutePaths.home);
-      return;
-    }
-
-    if (next.status == AuthStatus.error &&
-        next.emailError == null &&
-        next.passwordError == null &&
-        next.errorMessage != null) {
-      AuthFormActions.showErrorSnackBar(context, next.errorMessage!);
     }
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/create_post_ui_constants.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/create_post_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/utils/create_post_validators.dart';
-import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_primary_button.dart';
+import 'package:voinosis_jwt_board/shared/widgets/app_primary_button.dart';
+import 'package:voinosis_jwt_board/shared/widgets/labeled_text_field.dart';
 
 class CreatePostForm extends StatelessWidget {
   const CreatePostForm({
@@ -28,7 +28,7 @@ class CreatePostForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthTextField(
+          LabeledTextField(
             label: CreatePostUiText.titleLabel,
             controller: titleController,
             hintText: CreatePostUiText.titleHint,
@@ -37,7 +37,7 @@ class CreatePostForm extends StatelessWidget {
             validator: CreatePostValidators.title,
           ),
           const SizedBox(height: CreatePostUiConstants.fieldSpacing),
-          AuthTextField(
+          LabeledTextField(
             label: CreatePostUiText.contentLabel,
             controller: contentController,
             hintText: CreatePostUiText.contentHint,
@@ -49,7 +49,7 @@ class CreatePostForm extends StatelessWidget {
             validator: CreatePostValidators.content,
           ),
           const SizedBox(height: CreatePostUiConstants.submitSpacing),
-          PostsPrimaryButton(
+          AppPrimaryButton(
             label: CreatePostUiText.saveButton,
             isLoading: isSubmitting,
             expand: true,

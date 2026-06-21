@@ -5,8 +5,8 @@ import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_ac
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/create_post_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/create_post_state.dart';
-import 'package:voinosis_jwt_board/shared/constants/error_messages.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
+import 'package:voinosis_jwt_board/shared/utils/snackbar_utils.dart';
 
 class CreatePostActions {
   CreatePostActions._();
@@ -28,8 +28,8 @@ class CreatePostActions {
     return AuthFormActions.submitIfValid(
       formKey: formKey,
       action: () => ref.read(createPostProvider.notifier).submitPost(
-            title: title.trim(),
-            content: content.trim(),
+            title: title,
+            content: content,
           ),
     );
   }
@@ -40,7 +40,7 @@ class CreatePostActions {
     required CreatePostState next,
   }) {
     if (next.isSuccess && previous?.isSuccess != true) {
-      AuthFormActions.showSnackBar(context, CreatePostUiText.successMessage);
+      SnackBarUtils.showMessage(context, CreatePostUiText.successMessage);
       context.go(RoutePaths.home);
       return;
     }
@@ -54,17 +54,7 @@ class CreatePostActions {
       return;
     }
 
-    if (errorMessage == ErrorMessages.sessionExpired) {
-      _handleSessionExpired(context);
-      return;
-    }
-
-    AuthFormActions.showErrorSnackBar(context, errorMessage);
-  }
-
-  static void _handleSessionExpired(BuildContext context) {
-    AuthFormActions.showErrorSnackBar(context, ErrorMessages.sessionExpired);
-    context.go(RoutePaths.login);
+    SnackBarUtils.showMessage(context, errorMessage);
   }
 
   static void goBack({
@@ -75,6 +65,11 @@ class CreatePostActions {
       return;
     }
 
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+
+    context.go(RoutePaths.home);
   }
 }

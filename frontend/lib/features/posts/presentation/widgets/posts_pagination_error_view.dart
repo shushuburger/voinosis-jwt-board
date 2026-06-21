@@ -22,11 +22,11 @@ class PostsPaginationErrorView extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: PostsUiConstants.compactBodyFontSize,
               color: PostsUiConstants.errorColor,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PostsUiConstants.paginationErrorSpacing),
           TextButton(
             onPressed: onRetry,
             child: const Text(

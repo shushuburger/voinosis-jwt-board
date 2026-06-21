@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_constants.dart';
+import 'package:voinosis_jwt_board/shared/constants/app_ui_constants.dart';
 
-class AuthTextField extends StatelessWidget {
-  const AuthTextField({
+class LabeledTextField extends StatelessWidget {
+  const LabeledTextField({
     super.key,
     required this.label,
     required this.controller,
@@ -39,12 +39,12 @@ class AuthTextField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: AppUiConstants.labelFontSize,
             fontWeight: FontWeight.w600,
-            color: AuthUiConstants.labelColor,
+            color: AppUiConstants.labelColor,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppUiConstants.fieldLabelSpacing),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -64,33 +64,33 @@ class AuthTextField extends StatelessWidget {
 
   static InputDecoration inputDecoration(String hintText) {
     final borderRadius =
-        BorderRadius.circular(AuthUiConstants.fieldBorderRadius);
+        BorderRadius.circular(AppUiConstants.fieldBorderRadius);
 
     return InputDecoration(
       hintText: hintText,
       hintStyle: const TextStyle(
-        color: AuthUiConstants.hintColor,
-        fontSize: 14,
+        color: AppUiConstants.hintColor,
+        fontSize: AppUiConstants.bodyFontSize,
       ),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 14,
+        horizontal: AppUiConstants.fieldContentPaddingHorizontal,
+        vertical: AppUiConstants.fieldContentPaddingVertical,
       ),
       border: OutlineInputBorder(
         borderRadius: borderRadius,
-        borderSide: const BorderSide(color: AuthUiConstants.borderColor),
+        borderSide: const BorderSide(color: AppUiConstants.borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: borderRadius,
-        borderSide: const BorderSide(color: AuthUiConstants.borderColor),
+        borderSide: const BorderSide(color: AppUiConstants.borderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: borderRadius,
         borderSide: const BorderSide(
-          color: AuthUiConstants.primaryColor,
-          width: 1.5,
+          color: AppUiConstants.primaryColor,
+          width: AppUiConstants.fieldFocusedBorderWidth,
         ),
       ),
       errorBorder: OutlineInputBorder(

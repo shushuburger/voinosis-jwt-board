@@ -9,6 +9,7 @@ class PostsState {
     this.isPaginationLoading = false,
     this.errorMessage,
     this.paginationErrorMessage,
+    this.refreshErrorMessage,
     this.hasReachedEnd = false,
   });
 
@@ -19,6 +20,7 @@ class PostsState {
   final bool isPaginationLoading;
   final String? errorMessage;
   final String? paginationErrorMessage;
+  final String? refreshErrorMessage;
   final bool hasReachedEnd;
 
   bool get isEmpty =>
@@ -35,9 +37,11 @@ class PostsState {
     bool? isPaginationLoading,
     String? errorMessage,
     String? paginationErrorMessage,
+    String? refreshErrorMessage,
     bool? hasReachedEnd,
     bool clearErrorMessage = false,
     bool clearPaginationErrorMessage = false,
+    bool clearRefreshErrorMessage = false,
   }) {
     return PostsState(
       posts: posts ?? this.posts,
@@ -50,6 +54,9 @@ class PostsState {
       paginationErrorMessage: clearPaginationErrorMessage
           ? null
           : (paginationErrorMessage ?? this.paginationErrorMessage),
+      refreshErrorMessage: clearRefreshErrorMessage
+          ? null
+          : (refreshErrorMessage ?? this.refreshErrorMessage),
       hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
     );
   }

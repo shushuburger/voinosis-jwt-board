@@ -29,14 +29,6 @@ class SignupActions {
     if (previous?.status == AuthStatus.loading &&
         next.status == AuthStatus.unauthenticated) {
       context.go(RoutePaths.login);
-      return;
-    }
-
-    if (next.status == AuthStatus.error &&
-        next.emailError == null &&
-        next.passwordError == null &&
-        next.errorMessage != null) {
-      AuthFormActions.showErrorSnackBar(context, next.errorMessage!);
     }
   }
 }

@@ -61,7 +61,9 @@ describe('Posts query validation (e2e)', () => {
         },
       });
 
-      const response = await request(app.getHttpServer()).get('/posts').expect(200);
+      const response = await request(app.getHttpServer())
+        .get('/posts')
+        .expect(200);
 
       expect(response.body.meta).toMatchObject({
         page: 1,

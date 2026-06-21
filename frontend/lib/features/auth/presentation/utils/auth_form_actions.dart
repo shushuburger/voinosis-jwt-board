@@ -18,7 +18,6 @@ class AuthFormActions {
   static void applyFieldErrors({
     required GlobalKey<FormState> formKey,
     required AuthState next,
-    required void Function(String? emailError, String? passwordError) onApply,
   }) {
     if (next.status != AuthStatus.error) {
       return;
@@ -28,22 +27,20 @@ class AuthFormActions {
       return;
     }
 
-    onApply(next.emailError, next.passwordError);
+    _revalidateForm(formKey);
+  }
 
+  static void clearFieldError({
+    required GlobalKey<FormState> formKey,
+    required VoidCallback clearError,
+  }) {
+    clearError();
+    _revalidateForm(formKey);
+  }
+
+  static void _revalidateForm(GlobalKey<FormState> formKey) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       formKey.currentState?.validate();
     });
-  }
-
-  static void showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-  }
-
-  static void showErrorSnackBar(BuildContext context, String message) {
-    showSnackBar(context, message);
   }
 }

@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:voinosis_jwt_board/features/posts/data/posts_repository.dart';
+import 'package:voinosis_jwt_board/shared/constants/pagination_constants.dart';
+import 'package:voinosis_jwt_board/shared/exceptions/api_request_exception.dart';
 import 'package:voinosis_jwt_board/features/posts/data/posts_repository_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/model/posts_response.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_state.dart';
 
 class PostsNotifier extends Notifier<PostsState> {
-  static const _pageLimit = 10;
-
   @override
   PostsState build() => const PostsState();
 
@@ -30,7 +29,7 @@ class PostsNotifier extends Notifier<PostsState> {
         currentPage: response.meta.page,
         hasReachedEnd: _hasReachedEnd(response.meta.page, response.meta.lastPage),
       );
-    } on PostsFetchException catch (error) {
+    } on ApiRequestException catch (error) {
       state = PostsState(errorMessage: error.message);
     }
   }
@@ -58,7 +57,7 @@ class PostsNotifier extends Notifier<PostsState> {
         isPaginationLoading: false,
         hasReachedEnd: _hasReachedEnd(response.meta.page, response.meta.lastPage),
       );
-    } on PostsFetchException catch (error) {
+    } on ApiRequestException catch (error) {
       state = state.copyWith(
         isPaginationLoading: false,
         paginationErrorMessage: error.message,
@@ -74,6 +73,7 @@ class PostsNotifier extends Notifier<PostsState> {
     state = state.copyWith(
       isRefreshing: true,
       clearPaginationErrorMessage: true,
+      clearRefreshErrorMessage: true,
     );
 
     try {
@@ -84,15 +84,28 @@ class PostsNotifier extends Notifier<PostsState> {
         currentPage: response.meta.page,
         hasReachedEnd: _hasReachedEnd(response.meta.page, response.meta.lastPage),
       );
-    } on PostsFetchException {
-      state = state.copyWith(isRefreshing: false);
-      rethrow;
+    } on ApiRequestException catch (error) {
+      state = state.copyWith(
+        isRefreshing: false,
+        refreshErrorMessage: error.message,
+      );
     }
+  }
+
+  void clearRefreshError() {
+    if (state.refreshErrorMessage == null) {
+      return;
+    }
+
+    state = state.copyWith(clearRefreshErrorMessage: true);
   }
 
   Future<PostsResponse> _fetchPage(int page) {
     final repository = ref.read(postsRepositoryProvider);
-    return repository.fetchPosts(page: page, limit: _pageLimit);
+    return repository.fetchPosts(
+      page: page,
+      limit: PaginationConstants.defaultLimit,
+    );
   }
 
   bool _hasReachedEnd(int page, int lastPage) => page >= lastPage;

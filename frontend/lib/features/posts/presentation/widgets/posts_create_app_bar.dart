@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/create_post_ui_text.dart';
-import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_app_bar.dart';
 
 class PostsCreateAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PostsCreateAppBar({
@@ -15,21 +15,11 @@ class PostsCreateAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: PostsUiConstants.appBarBackgroundColor,
-      foregroundColor: PostsUiConstants.headingColor,
-      elevation: 0,
-      scrolledUnderElevation: 0,
+    return PostsAppBar(
+      title: CreatePostUiText.screenTitle,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: onBackPressed,
-      ),
-      title: const Text(
-        CreatePostUiText.screenTitle,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-        ),
       ),
     );
   }
