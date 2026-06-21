@@ -152,6 +152,11 @@ frontend/
 │  │  ├─ storage/
 │  │  │  ├─ secure_storage_service.dart
 │  │  │  └─ secure_storage_service_provider.dart
+│  │  ├─ utils/
+│  │  │  └─ snackbar_utils.dart           # 공통 SnackBar 표시
+│  │  ├─ widgets/
+│  │  │  ├─ app_primary_button.dart       # Auth/Posts 공통 primary 버튼
+│  │  │  └─ labeled_text_field.dart       # Auth/Posts 공통 labeled TextField
 │  │  └─ router/
 │  │     ├─ app_router.dart              # GoRouter + auth redirect
 │  │     └─ router_provider.dart
@@ -227,7 +232,7 @@ frontend/
 | `login_actions.dart` / `signup_actions.dart` | submit, 라우팅, SnackBar fallback |
 | `auth_field_errors.dart` | DioException → 이메일/비밀번호 필드 에러 매핑 |
 | `auth_validators.dart` | 클라이언트 폼 검증 (이메일, 비밀번호 8자+) |
-| `auth_form_actions.dart` | `submitIfValid`, `applyFieldErrors`, `showSnackBar` (success/error 공용) |
+| `auth_form_actions.dart` | `submitIfValid`, `applyFieldErrors` |
 
 ### Posts — 데이터·상태
 
@@ -249,14 +254,15 @@ frontend/
 | 파일 | 설명 |
 |------|------|
 | `posts_list_screen.dart` | 목록 Screen, ScrollController, RefreshIndicator |
-| `posts_actions.dart` | fetch, refresh, Create auth 분기 (`LoginActions` 패턴) |
+| `posts_actions.dart` | fetch, refresh (`LoginActions` 패턴) |
 | `create_post_screen.dart` | controller, `ref.listen`, `PopScope` |
-| `create_post_form.dart` | 제목·본문 Form UI (`AuthTextField` multiline) |
+| `create_post_form.dart` | 제목·본문 Form UI (`LabeledTextField` multiline) |
 | `create_post_actions.dart` | submit, success navigate, 401 session expired UX |
 | `create_post_validators.dart` | trim 후 제목/본문 빈 값 검증 |
 | `post_card.dart` | 게시글 카드 UI |
 | `posts_*_view.dart` | Loading / Empty / Error / Pagination 상태별 UI |
-| `posts_primary_button.dart` | 공통 primary 버튼 (`isLoading`, `expand`) |
+| `posts_app_bar.dart` | Posts 공통 AppBar (목록·작성) |
+| `posts_centered_state_view.dart` | Empty/Error 공통 Center 레이아웃 |
 | `posts_create_button.dart` | AppBar Create 버튼 |
 | `posts_create_app_bar.dart` | 작성 화면 AppBar |
 | `posts_form_page_layout.dart` | 작성·폼 공통 페이지 레이아웃 |
@@ -444,11 +450,11 @@ Repository — Dio 호출, DioException → 도메인 예외 변환
 
 ---
 
-### 10. `AuthTextField` multiline과 `obscureText` 충돌
+### 10. `LabeledTextField` multiline과 `obscureText` 충돌
 
 **고민:** 401 후 `/login` 이동 시 비밀번호 필드에서 `obscureText: true`와 `maxLines: null`(multiline 기본값)이 동시에 적용되면 Flutter assertion이 발생할 수 있습니다.
 
-**해결:** `AuthTextField`에서 `obscureText`일 때 `minLines`/`maxLines`를 1로 고정하고, 일반 필드만 multiline 옵션을 허용합니다.
+**해결:** `LabeledTextField`에서 `obscureText`일 때 `minLines`/`maxLines`를 1로 고정하고, 일반 필드만 multiline 옵션을 허용합니다.
 
 ---
 

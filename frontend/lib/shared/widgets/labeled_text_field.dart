@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_constants.dart';
 
-class AuthTextField extends StatelessWidget {
-  const AuthTextField({
+class LabeledTextField extends StatelessWidget {
+  const LabeledTextField({
     super.key,
     required this.label,
     required this.controller,

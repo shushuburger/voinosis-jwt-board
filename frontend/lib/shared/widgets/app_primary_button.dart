@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_ui_constants.dart';
 
-class PostsPrimaryButton extends StatelessWidget {
-  const PostsPrimaryButton({
+class AppPrimaryButton extends StatelessWidget {
+  const AppPrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
@@ -26,15 +26,15 @@ class PostsPrimaryButton extends StatelessWidget {
     final button = FilledButton(
       onPressed: isLoading ? null : onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: PostsUiConstants.primaryColor,
+        backgroundColor: AuthUiConstants.primaryColor,
         disabledBackgroundColor:
-            PostsUiConstants.primaryColor.withValues(alpha: 0.6),
+            AuthUiConstants.primaryColor.withValues(alpha: 0.6),
         foregroundColor: Colors.white,
         minimumSize: minimumSize,
         padding: padding,
         shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(PostsUiConstants.buttonBorderRadius),
+              BorderRadius.circular(AuthUiConstants.fieldBorderRadius),
         ),
         elevation: 0,
       ),

@@ -5,7 +5,7 @@ import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_email
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_form_card.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_link_prompt.dart';
 import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_page_header.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/widgets/auth_primary_button.dart';
+import 'package:voinosis_jwt_board/shared/widgets/app_primary_button.dart';
 
 class SignupForm extends StatelessWidget {
   const SignupForm({
@@ -62,9 +62,14 @@ class SignupForm extends StatelessWidget {
                   onPasswordChanged: onPasswordChanged,
                 ),
                 const SizedBox(height: 28),
-                AuthPrimaryButton(
+                AppPrimaryButton(
                   label: AuthUiText.signupButton,
                   isLoading: isLoading,
+                  expand: true,
+                  minimumSize: const Size(
+                    double.infinity,
+                    AuthUiConstants.buttonHeight,
+                  ),
                   onPressed: onSubmit,
                 ),
                 const SizedBox(height: 20),

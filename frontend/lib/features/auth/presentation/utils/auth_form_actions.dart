@@ -31,16 +31,4 @@ class AuthFormActions {
       formKey.currentState?.validate();
     });
   }
-
-  static void showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-  }
-
-  static void showErrorSnackBar(BuildContext context, String message) {
-    showSnackBar(context, message);
-  }
 }

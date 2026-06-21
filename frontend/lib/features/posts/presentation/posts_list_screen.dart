@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/utils/auth_form_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_constants.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/constants/posts_ui_text.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/posts_actions.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/post_card.dart';
+import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_app_bar.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_create_button.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_empty_view.dart';
 import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_error_view.dart';
@@ -15,6 +15,7 @@ import 'package:voinosis_jwt_board/features/posts/presentation/widgets/posts_pag
 import 'package:voinosis_jwt_board/features/posts/provider/posts_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_state.dart';
 import 'package:voinosis_jwt_board/shared/constants/route_constants.dart';
+import 'package:voinosis_jwt_board/shared/utils/snackbar_utils.dart';
 
 class PostsListScreen extends ConsumerStatefulWidget {
   const PostsListScreen({super.key});
@@ -70,24 +71,14 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
         return;
       }
 
-      AuthFormActions.showErrorSnackBar(context, message);
+      SnackBarUtils.showError(context, message);
       ref.read(postsProvider.notifier).clearRefreshError();
     });
 
     return Scaffold(
       backgroundColor: PostsUiConstants.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: PostsUiConstants.appBarBackgroundColor,
-        foregroundColor: PostsUiConstants.headingColor,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: const Text(
-          PostsUiText.screenTitle,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+      appBar: PostsAppBar(
+        title: PostsUiText.screenTitle,
         actions: [
           PostsCreateButton(
             onPressed: () => context.go(RoutePaths.postsCreate),
