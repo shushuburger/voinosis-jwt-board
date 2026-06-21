@@ -14,16 +14,27 @@ class PostsAuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCompact =
+        MediaQuery.sizeOf(context).width < PostsUiConstants.appBarCompactBreakpoint;
+
     return Padding(
-      padding: const EdgeInsets.only(
-        right: PostsUiConstants.appBarActionSpacing,
+      padding: EdgeInsets.only(
+        right: isCompact
+            ? PostsUiConstants.compactAppBarActionPadding
+            : PostsUiConstants.appBarActionSpacing,
       ),
       child: AppPrimaryButton(
         label: label,
         onPressed: onPressed,
-        minimumSize: PostsUiConstants.authButtonSize,
-        padding: PostsUiConstants.createButtonPadding,
-        fontSize: PostsUiConstants.createButtonFontSize,
+        minimumSize: isCompact
+            ? PostsUiConstants.compactAuthButtonSize
+            : PostsUiConstants.authButtonSize,
+        padding: isCompact
+            ? const EdgeInsets.symmetric(horizontal: 12)
+            : PostsUiConstants.createButtonPadding,
+        fontSize: isCompact
+            ? PostsUiConstants.compactButtonFontSize
+            : PostsUiConstants.createButtonFontSize,
       ),
     );
   }

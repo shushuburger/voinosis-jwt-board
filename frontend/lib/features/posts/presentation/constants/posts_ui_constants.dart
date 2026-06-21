@@ -18,6 +18,12 @@ abstract final class PostsUiConstants {
   static const cardSpacing = 12.0;
   static const appBarActionPadding = 16.0;
   static const appBarActionSpacing = 8.0;
+  static const appBarCompactBreakpoint = 480.0;
+  static const compactAppBarActionPadding = 8.0;
+  static const compactAuthButtonSize = Size(72, 32);
+  static const compactCreateButtonSize = Size(36, 32);
+  static const compactCreateIconSize = 18.0;
+  static const compactButtonFontSize = 12.0;
   static const stateViewHorizontalPadding = 32.0;
 
   static const cardPadding = 16.0;
