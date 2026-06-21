@@ -1,42 +1,45 @@
 import 'package:dio/dio.dart';
+import 'package:voinosis_jwt_board/features/auth/data/auth_field_errors.dart';
 import 'package:voinosis_jwt_board/shared/constants/error_messages.dart';
+import 'package:voinosis_jwt_board/shared/exceptions/api_request_exception.dart';
 import 'package:voinosis_jwt_board/shared/network/dio_error_utils.dart';
 
-enum AuthErrorContext {
-  login,
-  signup,
-}
+abstract final class DioExceptionMapper {
+  static ApiRequestException toApiRequestException(DioException error) {
+    return ApiRequestException(
+      message: toUserMessage(error),
+      isSessionExpired: DioErrorUtils.isUnauthorized(error),
+    );
+  }
 
-class AuthFieldErrors {
-  const AuthFieldErrors({
-    this.email,
-    this.password,
-    this.fallbackMessage,
-  });
-
-  final String? email;
-  final String? password;
-  final String? fallbackMessage;
-
-  bool get hasFieldError => email != null || password != null;
-
-  static AuthFieldErrors forLogin(Object error) =>
-      _resolve(error, AuthErrorContext.login);
-
-  static AuthFieldErrors forSignup(Object error) =>
-      _resolve(error, AuthErrorContext.signup);
-
-  static AuthFieldErrors _resolve(Object error, AuthErrorContext context) {
-    if (error is! DioException) {
-      return const AuthFieldErrors(fallbackMessage: ErrorMessages.unknown);
+  static String toUserMessage(DioException error) {
+    if (DioErrorUtils.isNetworkError(error)) {
+      return ErrorMessages.network;
     }
 
+    if (DioErrorUtils.isUnauthorized(error)) {
+      return ErrorMessages.sessionExpired;
+    }
+
+    final serverMessage = DioErrorUtils.extractServerMessage(error.response?.data);
+    if (serverMessage != null) {
+      return serverMessage;
+    }
+
+    return ErrorMessages.unknown;
+  }
+
+  static AuthFieldErrors toAuthFieldErrors(
+    DioException error,
+    AuthErrorContext context,
+  ) {
     if (DioErrorUtils.isNetworkError(error)) {
       return const AuthFieldErrors(password: ErrorMessages.network);
     }
 
     final statusCode = error.response?.statusCode;
-    final serverMessage = DioErrorUtils.extractServerMessage(error.response?.data);
+    final serverMessage =
+        DioErrorUtils.extractServerMessage(error.response?.data);
 
     switch (statusCode) {
       case 400:

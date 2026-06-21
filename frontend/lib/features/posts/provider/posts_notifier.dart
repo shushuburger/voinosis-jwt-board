@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:voinosis_jwt_board/shared/constants/pagination_constants.dart';
-import 'package:voinosis_jwt_board/features/posts/data/posts_repository.dart';
+import 'package:voinosis_jwt_board/shared/exceptions/api_request_exception.dart';
 import 'package:voinosis_jwt_board/features/posts/data/posts_repository_provider.dart';
 import 'package:voinosis_jwt_board/features/posts/model/posts_response.dart';
 import 'package:voinosis_jwt_board/features/posts/provider/posts_state.dart';
@@ -29,7 +29,7 @@ class PostsNotifier extends Notifier<PostsState> {
         currentPage: response.meta.page,
         hasReachedEnd: _hasReachedEnd(response.meta.page, response.meta.lastPage),
       );
-    } on PostsFetchException catch (error) {
+    } on ApiRequestException catch (error) {
       state = PostsState(errorMessage: error.message);
     }
   }
@@ -57,7 +57,7 @@ class PostsNotifier extends Notifier<PostsState> {
         isPaginationLoading: false,
         hasReachedEnd: _hasReachedEnd(response.meta.page, response.meta.lastPage),
       );
-    } on PostsFetchException catch (error) {
+    } on ApiRequestException catch (error) {
       state = state.copyWith(
         isPaginationLoading: false,
         paginationErrorMessage: error.message,
@@ -84,7 +84,7 @@ class PostsNotifier extends Notifier<PostsState> {
         currentPage: response.meta.page,
         hasReachedEnd: _hasReachedEnd(response.meta.page, response.meta.lastPage),
       );
-    } on PostsFetchException catch (error) {
+    } on ApiRequestException catch (error) {
       state = state.copyWith(
         isRefreshing: false,
         refreshErrorMessage: error.message,

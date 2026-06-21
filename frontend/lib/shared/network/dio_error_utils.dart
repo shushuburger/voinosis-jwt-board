@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:voinosis_jwt_board/shared/constants/error_messages.dart';
 
 abstract final class DioErrorUtils {
   static bool isNetworkError(DioException error) {
@@ -7,6 +6,10 @@ abstract final class DioErrorUtils {
         error.type == DioExceptionType.sendTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.connectionError;
+  }
+
+  static bool isUnauthorized(DioException error) {
+    return error.response?.statusCode == 401;
   }
 
   static String? extractServerMessage(dynamic data) {
@@ -24,22 +27,5 @@ abstract final class DioErrorUtils {
     }
 
     return null;
-  }
-
-  static String genericMessage(DioException error) {
-    if (isNetworkError(error)) {
-      return ErrorMessages.network;
-    }
-
-    if (error.response?.statusCode == 401) {
-      return ErrorMessages.sessionExpired;
-    }
-
-    final serverMessage = extractServerMessage(error.response?.data);
-    if (serverMessage != null) {
-      return serverMessage;
-    }
-
-    return ErrorMessages.unknown;
   }
 }

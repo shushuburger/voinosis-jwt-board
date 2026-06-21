@@ -4,16 +4,7 @@ import 'package:voinosis_jwt_board/features/posts/data/posts_api_paths.dart';
 import 'package:voinosis_jwt_board/features/posts/model/create_post_request.dart';
 import 'package:voinosis_jwt_board/features/posts/model/post_model.dart';
 import 'package:voinosis_jwt_board/features/posts/model/posts_response.dart';
-import 'package:voinosis_jwt_board/shared/network/dio_error_utils.dart';
-
-class PostsFetchException implements Exception {
-  const PostsFetchException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
-}
+import 'package:voinosis_jwt_board/shared/network/dio_exception_mapper.dart';
 
 class PostsRepository {
   PostsRepository({required Dio dio}) : _dio = dio;
@@ -35,7 +26,7 @@ class PostsRepository {
 
       return PostsResponse.fromJson(response.data!);
     } on DioException catch (error) {
-      throw PostsFetchException(DioErrorUtils.genericMessage(error));
+      throw DioExceptionMapper.toApiRequestException(error);
     }
   }
 
@@ -48,7 +39,7 @@ class PostsRepository {
 
       return PostModel.fromJson(response.data!);
     } on DioException catch (error) {
-      throw PostsFetchException(DioErrorUtils.genericMessage(error));
+      throw DioExceptionMapper.toApiRequestException(error);
     }
   }
 }
