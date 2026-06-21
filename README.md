@@ -33,7 +33,7 @@ npm run start:dev             # http://localhost:3000
 |------|------|------|
 | `DATABASE_URL` | `file:./dev.db` | SQLite DB 파일 경로 |
 | `JWT_SECRET` | (32자 이상 랜덤 문자열) | JWT 서명·검증 키 |
-| `JWT_EXPIRES_IN` | `1d` | JWT 만료 시간 |
+| `JWT_EXPIRES_IN` | `1d` | JWT 만료 시간 (`10s` 등 ms 형식, 로컬 만료 테스트 시 서버 재시작·재로그인 필요) |
 
 > `.env`는 git에 포함하지 않습니다. `.env.example`만 저장소에 포함됩니다.
 
@@ -108,7 +108,7 @@ JWT 인증을 도입하면서 아래 요구가 동시에 겹쳤습니다.
 
 ```text
 onRequest  → SecureStorage에서 token 읽기 → Authorization: Bearer {token}
-onError    → 401이면서 /auth/login, /auth/signup이 아닐 때만 logout()
+onError    → 401이면서 /auth/login, /auth/signup이 아닐 때만 await logout()
 ```
 
 **③ 401 UX — 레이어별 책임 분리**
@@ -119,12 +119,13 @@ onError    → 401이면서 /auth/login, /auth/signup이 아닐 때만 logout()
 | `AuthNotifier.logout()` | SecureStorage 토큰 삭제 + unauthenticated |
 | `DioExceptionMapper` | 401 → `ErrorMessages.sessionExpired` |
 | `CreatePostActions` | session expired SnackBar |
-| `GoRouter` + `router.refresh()` | `/login` redirect (Actions에서 직접 `go`하지 않음) |
+| `GoRouter` + `router.go(target)` | 보호 경로에서 unauthenticated 시 `/login` 이동 (Actions에서 직접 `go`하지 않음) |
 
-**④ GoRouter — 재생성 대신 refresh**
+**④ GoRouter — 재생성 대신 auth 변경 시 명시적 redirect**
 
 - GoRouter는 **한 번만 생성**
-- `ref.listen(authProvider)` → `router.refresh()`로 redirect만 재실행
+- `ref.listen(authProvider)` → `_redirect()` 결과가 현재 경로와 다르면 `router.go(target)` 호출
+- `router.refresh()`만으로는 `push`된 보호 경로(`/posts/create`)에서 `/login` 이동이 누락될 수 있어 `go`로 보완
 
 #### 결과
 
@@ -142,7 +143,7 @@ onError    → 401이면서 /auth/login, /auth/signup이 아닐 때만 logout()
 
 - `ScrollController` listener가 하단 threshold 안에서 **연속으로** `fetchNextPage()` 호출
 - API 응답 전에 다음 페이지 요청이 나가면 **같은 page 중복 요청** 또는 순서 꼬임
-- 작성 성공 후 `refreshPosts()` + `fetchInitialPosts()`를 동시에 호출하면 **GET /posts 이중 호출**
+- 작성 성공 후 홈 복귀 시 `initState`의 `fetchInitialPosts()`만 기대하면, `push`로 진입한 홈 화면이 **dispose되지 않아 목록이 갱신되지 않음**
 
 #### 고민한 이유
 
@@ -168,10 +169,10 @@ refreshPosts       → isRefreshing / isLoading이면 return
 | `isPaginationLoading` / `paginationErrorMessage` | 다음 페이지 | 하단 retry, **목록 유지** |
 | `isRefreshing` / `refreshErrorMessage` | pull-to-refresh | SnackBar, **목록 유지** |
 
-**③ 작성 성공 후 목록 갱신 — 단일 진입점**
+**③ 작성 성공 후 목록 갱신**
 
-- `CreatePostActions` → `context.go('/')`만 수행
-- 목록 갱신은 `PostsListScreen.initState`의 `fetchInitialPosts()`에 위임
+- `CreatePostActions`에서 `refreshPosts()`로 1페이지 목록 재조회 후 `context.go('/')`
+- 홈은 `push`로 유지되므로 `initState` 재실행에 의존하지 않음
 
 **④ 작성 중복 제출 방지** — `CreatePostNotifier` / `CreatePostActions`의 `isSubmitting` guard + `PopScope`
 
@@ -180,6 +181,7 @@ refreshPosts       → isRefreshing / isLoading이면 return
 - 스크롤 하단에서 **페이지당 API 1회**
 - refresh·pagination·초기 로딩이 **서로 간섭하지 않음**
 - pagination·refresh 실패 시에도 **이미 본 목록 유지**
+- 작성 성공 후 홈 복귀 시 **새 글이 목록에 바로 반영**
 
 ---
 
@@ -234,14 +236,33 @@ DioExceptionMapper  → DioException → AuthFieldErrors / ApiRequestException
 
 ---
 
+### 3-4. 반응형 홈 AppBar 제목 잘림
+
+#### 문제
+
+Chrome 반응형(좁은 viewport)에서 AppBar 제목 `JWT 익명 게시판`이 오른쪽 버튼(로그아웃·글 작성하기)에 밀려 말줄임표로 잘렸습니다.
+
+#### 해결 방법
+
+- 제목에 `FittedBox(fit: BoxFit.scaleDown)` 적용 — 글자 전체 표시, 공간 부족 시 크기만 축소
+- 480px 미만에서는 글 작성 버튼을 아이콘+툴팁으로, 로그아웃 버튼 크기를 축소해 제목 공간 확보
+
+#### 결과
+
+- 좁은 화면에서도 **제목 전체가 보임**
+- 데스크톱·넓은 화면에서는 기존 텍스트 버튼 UX 유지
+
+---
+
 ## 부록
 
 ### 구현 기능 요약
 
 - 회원가입 / 로그인 / JWT Secure Storage / 자동 로그인
 - 게시글 목록 (공개, infinite scroll, pull-to-refresh)
-- 게시글 작성 (JWT 필수, 익명 UX — 작성자 미표시)
-- GoRouter 인증 redirect, 401 session expired 처리
+- 게시글 작성 (JWT 필수, 익명 UX — 작성자 미표시, 작성 성공 후 목록 자동 갱신)
+- GoRouter 인증 redirect, 401 session expired 처리 (보호 경로 → 로그인 이동)
+- 반응형 홈 AppBar (좁은 화면 제목·버튼 레이아웃)
 
 ### 스크린샷
 

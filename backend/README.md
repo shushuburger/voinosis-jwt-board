@@ -316,7 +316,7 @@ backend/
 
 **고민:** `ConfigService.getOrThrow<string>()` 반환 타입과 `@nestjs/jwt`의 `expiresIn`(ms `StringValue`) 타입이 맞지 않아 빌드 오류가 발생했습니다.
 
-**해결:** `configService.getOrThrow<string>('JWT_EXPIRES_IN') as StringValue`로 단언. `.env`에는 `1d` 등 유효한 시간 형식을 사용합니다.
+**해결:** `configService.getOrThrow<string>('JWT_EXPIRES_IN') as StringValue`로 단언. `.env`에는 `1d` 등 유효한 시간 형식(`10s`, `1h` 등 ms 형식)을 사용했습니다.
 
 ### 5. 응답에서 password 제외
 
