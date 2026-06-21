@@ -11,8 +11,3 @@ class AuthFieldErrors {
 
   bool get hasFieldError => email != null || password != null;
 }
-
-enum AuthErrorContext {
-  login,
-  signup,
-}

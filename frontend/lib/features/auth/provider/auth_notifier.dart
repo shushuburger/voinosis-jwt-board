@@ -38,7 +38,6 @@ class AuthNotifier extends Notifier<AuthState> {
     } on AuthException catch (error) {
       final fieldErrors = error.fieldErrors;
       state = AuthState.error(
-        message: fieldErrors.fallbackMessage,
         emailError: fieldErrors.email,
         passwordError:
             fieldErrors.password ?? fieldErrors.fallbackMessage,
@@ -60,7 +59,6 @@ class AuthNotifier extends Notifier<AuthState> {
     } on AuthException catch (error) {
       final fieldErrors = error.fieldErrors;
       state = AuthState.error(
-        message: fieldErrors.fallbackMessage,
         emailError: fieldErrors.email ?? fieldErrors.fallbackMessage,
         passwordError: fieldErrors.password,
       );

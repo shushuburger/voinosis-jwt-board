@@ -24,7 +24,6 @@ class CreatePostNotifier extends Notifier<CreatePostState> {
       isSubmitting: true,
       isSuccess: false,
       clearErrorMessage: true,
-      clearSessionExpired: true,
     );
 
     try {
@@ -44,7 +43,6 @@ class CreatePostNotifier extends Notifier<CreatePostState> {
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: error.message,
-        isSessionExpired: error.isSessionExpired,
       );
     }
   }

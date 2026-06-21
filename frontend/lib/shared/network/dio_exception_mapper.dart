@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:voinosis_jwt_board/features/auth/data/auth_error_context.dart';
 import 'package:voinosis_jwt_board/features/auth/data/auth_field_errors.dart';
 import 'package:voinosis_jwt_board/shared/constants/error_messages.dart';
 import 'package:voinosis_jwt_board/shared/exceptions/api_request_exception.dart';
@@ -6,10 +7,7 @@ import 'package:voinosis_jwt_board/shared/network/dio_error_utils.dart';
 
 abstract final class DioExceptionMapper {
   static ApiRequestException toApiRequestException(DioException error) {
-    return ApiRequestException(
-      message: toUserMessage(error),
-      isSessionExpired: DioErrorUtils.isUnauthorized(error),
-    );
+    return ApiRequestException(message: toUserMessage(error));
   }
 
   static String toUserMessage(DioException error) {

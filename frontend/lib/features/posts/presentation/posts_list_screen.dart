@@ -78,7 +78,7 @@ class _PostsListScreenState extends ConsumerState<PostsListScreen> {
         return;
       }
 
-      SnackBarUtils.showError(context, message);
+      SnackBarUtils.showMessage(context, message);
       ref.read(postsProvider.notifier).clearRefreshError();
     });
 

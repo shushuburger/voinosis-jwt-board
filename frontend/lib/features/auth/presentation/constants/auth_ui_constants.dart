@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:voinosis_jwt_board/shared/constants/app_ui_constants.dart';
 
 abstract final class AuthUiConstants {
-  static const backgroundColor = Color(0xFFF5F6F8);
-  static const primaryColor = Color(0xFF7A2940);
-  static const titleColor = Color(0xFFB64B6F);
-  static const subtitleColor = Color(0xFF6B7280);
-  static const labelColor = Color(0xFF374151);
-  static const borderColor = Color(0xFFE5E7EB);
-  static const hintColor = Color(0xFF9CA3AF);
+  static const backgroundColor = AppUiConstants.backgroundColor;
+  static const primaryColor = AppUiConstants.primaryColor;
+  static const titleColor = AppUiConstants.titleColor;
+  static const subtitleColor = AppUiConstants.subtitleColor;
+  static const labelColor = AppUiConstants.labelColor;
+  static const borderColor = AppUiConstants.borderColor;
+  static const hintColor = AppUiConstants.hintColor;
 
   static const maxFormWidth = 420.0;
-  static const fieldBorderRadius = 8.0;
-  static const cardBorderRadius = 16.0;
-  static const buttonHeight = 48.0;
+  static const fieldBorderRadius = AppUiConstants.fieldBorderRadius;
+  static const cardBorderRadius = AppUiConstants.cardBorderRadius;
+  static const buttonHeight = AppUiConstants.buttonHeight;
 
   static const pageHorizontalPadding = 24.0;
   static const pageVerticalPadding = 32.0;
@@ -22,12 +23,21 @@ abstract final class AuthUiConstants {
   static const cardTitleFieldSpacing = 24.0;
   static const fieldsSubmitSpacing = 28.0;
   static const submitLinkSpacing = 20.0;
-  static const fieldLabelSpacing = 8.0;
+  static const fieldLabelSpacing = AppUiConstants.fieldLabelSpacing;
   static const emailPasswordSpacing = 20.0;
   static const headerSubtitleSpacing = 12.0;
 
-  static const labelFontSize = 14.0;
-  static const bodyFontSize = 14.0;
+  static const pageHeaderTitleFontSize = 28.0;
+  static const pageHeaderSubtitleFontSize = 15.0;
+  static const pageHeaderTitleLineHeight = 1.3;
+  static const pageHeaderSubtitleLineHeight = 1.5;
+
+  static const formCardShadowAlpha = 0.06;
+  static const formCardShadowBlurRadius = 24.0;
+  static const formCardShadowOffsetY = 8.0;
+
+  static const labelFontSize = AppUiConstants.labelFontSize;
+  static const bodyFontSize = AppUiConstants.bodyFontSize;
   static const titleFontSize = 20.0;
-  static const buttonFontSize = 16.0;
+  static const buttonFontSize = AppUiConstants.buttonFontSize;
 }

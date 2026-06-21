@@ -8,8 +8,4 @@ abstract final class SnackBarUtils {
         SnackBar(content: Text(message)),
       );
   }
-
-  static void showError(BuildContext context, String message) {
-    showMessage(context, message);
-  }
 }

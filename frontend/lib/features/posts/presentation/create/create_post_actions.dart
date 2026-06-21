@@ -54,7 +54,7 @@ class CreatePostActions {
       return;
     }
 
-    SnackBarUtils.showError(context, errorMessage);
+    SnackBarUtils.showMessage(context, errorMessage);
   }
 
   static void goBack({

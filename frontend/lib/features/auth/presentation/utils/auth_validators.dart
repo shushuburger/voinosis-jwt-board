@@ -1,5 +1,5 @@
 import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_validation_constants.dart';
-import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_message_constants.dart';
+import 'package:voinosis_jwt_board/features/auth/presentation/constants/auth_validation_messages.dart';
 
 class AuthValidators {
   AuthValidators._();

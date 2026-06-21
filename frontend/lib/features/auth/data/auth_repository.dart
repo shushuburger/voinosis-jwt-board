@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:voinosis_jwt_board/features/auth/data/auth_exception.dart';
+import 'package:voinosis_jwt_board/features/auth/data/auth_error_context.dart';
 import 'package:voinosis_jwt_board/features/auth/data/auth_field_errors.dart';
 import 'package:voinosis_jwt_board/features/auth/model/auth_response.dart';
 import 'package:voinosis_jwt_board/features/auth/model/login_request.dart';

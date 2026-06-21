@@ -1,11 +1,7 @@
 class ApiRequestException implements Exception {
-  const ApiRequestException({
-    required this.message,
-    this.isSessionExpired = false,
-  });
+  const ApiRequestException({required this.message});
 
   final String message;
-  final bool isSessionExpired;
 
   @override
   String toString() => message;
